@@ -150,7 +150,16 @@ export const onMessage = (callback: (data: SocketMessage) => void) => {
     return;
   }
   socket.onmessage = (event) => {
-    callback(JSON.parse(event.data));
+    try {
+      callback(JSON.parse(event.data));
+    } catch {
+      // The server sends some errors (e.g. "Game is already full") as plain
+      // text. Surface them as an ERROR message instead of throwing.
+      callback({
+        type: "ERROR",
+        payload: { message: String(event.data).replace(/^\W+/, "") },
+      });
+    }
   };
 };
 

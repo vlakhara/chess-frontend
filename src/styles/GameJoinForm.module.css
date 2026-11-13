@@ -1,241 +1,236 @@
 .container {
+  min-height: 100vh;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100vh;
-  width: 100vw;
-  gap: 20px;
-  background-color: #f5f5f5;
   padding: 20px;
-  box-sizing: border-box;
+  overflow-y: auto;
 }
 
 .formCard {
-  background-color: white;
-  padding: clamp(20px, 5vw, 40px);
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  min-width: 280px;
-  max-width: 90vw;
   width: 100%;
-  max-width: 400px;
+  max-width: 440px;
+  padding: clamp(24px, 5vw, 36px);
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 26px;
+  box-shadow: 9px 9px 0 var(--ink);
+  animation: pop 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+.pieces {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  font-size: 3.2rem;
+  line-height: 1;
+}
+
+.white {
+  display: inline-block;
+  color: #fffdf6;
+  -webkit-text-stroke: 2px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 var(--ink);
+  transform: rotate(-8deg);
+}
+
+.black {
+  display: inline-block;
+  color: var(--ink);
+  transform: scaleX(-1) rotate(-8deg);
 }
 
 .title {
   text-align: center;
-  margin-bottom: 30px;
-  color: #333;
-  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-size: clamp(2.8rem, 10vw, 3.6rem);
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  line-height: 1;
+  margin: 6px 0 6px;
+}
+
+.title em {
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--orange);
+}
+
+.subtitle {
+  text-align: center;
+  color: var(--ink-soft);
+  margin-bottom: 22px;
+}
+
+.tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  margin-bottom: 20px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper-2);
+}
+
+.tab {
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tab:hover {
+  background: rgba(23, 20, 15, 0.08);
+}
+
+.tabActive,
+.tabActive:hover {
+  background: var(--ink);
+  color: var(--paper);
 }
 
 .formGroup {
-  margin-bottom: 20px;
+  margin-bottom: 18px;
 }
 
 .label {
   display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-  color: #555;
-  font-size: clamp(14px, 2vw, 16px);
+  margin-bottom: 6px;
+  font: 700 0.74rem var(--font-code);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .input {
   width: 100%;
-  padding: clamp(10px, 2vw, 12px);
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: clamp(14px, 2vw, 16px);
-  box-sizing: border-box;
+  min-width: 0;
+  padding: 13px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: #fff9e8;
+  color: var(--ink);
+  font: 600 1rem var(--font-body);
+  transition: box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.input::placeholder {
+  color: #9b927d;
+  font-weight: 500;
 }
 
 .input:focus {
   outline: none;
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+  background: #fff;
+  box-shadow: 4px 4px 0 var(--orange);
+}
+
+.codeInput {
+  font-family: var(--font-code);
+  font-weight: 700;
+  letter-spacing: 0.14em;
 }
 
 .gameIdContainer {
   display: flex;
-  gap: 10px;
-  align-items: stretch;
+  gap: 8px;
 }
 
-.gameIdContainer .input {
-  flex: 1;
-  margin-bottom: 0;
-}
-
-.refreshButton {
-  padding: clamp(8px, 2vw, 12px);
-  background-color: #ffffff;
-  color: #4CAF50;
-  border: 2px solid #4CAF50;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  min-width: 40px;
-  height: 40px;
-  display: flex;
+.iconButton {
+  flex: none;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.refreshButton svg {
-  width: clamp(14px, 2.5vw, 16px);
-  height: clamp(14px, 2.5vw, 16px);
-}
-
-.refreshButton:hover {
-  background-color: #4CAF50;
-  color: white;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
-}
-
-.refreshButton:active {
-  background-color: #45a049;
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(76, 175, 80, 0.2);
-}
-
-.copyContainer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 10px;
-  padding: 8px 12px;
-  background-color: #f8f9fa;
-  border-radius: 5px;
-  border: 1px solid #e9ecef;
-}
-
-.gameIdDisplay {
-  font-size: clamp(12px, 2vw, 14px);
-  color: #666;
-  flex: 1;
-}
-
-.copyButton {
-  padding: 6px 12px;
-  background-color: #6c757d;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: clamp(11px, 2vw, 13px);
+  min-width: 46px;
+  padding: 0 14px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.3s;
-  white-space: nowrap;
-  min-width: 60px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
 }
 
-.copyButton:hover {
-  background-color: #5a6268;
+.iconButton:hover {
+  background: var(--mustard);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 0 var(--ink);
 }
 
-.copyButton.copied {
-  background-color: #28a745;
+.copied,
+.copied:hover {
+  background: var(--green);
+  color: #fff;
 }
 
-.copyButton.copied:hover {
-  background-color: #218838;
+.help {
+  margin-top: 8px;
+  font: 500 0.78rem var(--font-code);
+  color: var(--ink-soft);
 }
 
 .error {
-  color: #d32f2f;
-  margin-bottom: 20px;
-  text-align: center;
-  font-size: clamp(12px, 2vw, 14px);
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: #ffd9cc;
+  font-weight: 600;
+  font-size: 0.9rem;
 }
 
 .button {
   width: 100%;
-  padding: clamp(10px, 2vw, 12px);
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: clamp(14px, 2vw, 16px);
+  padding: 15px;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  background: var(--orange);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 1.1rem;
+  letter-spacing: 0.01em;
   cursor: pointer;
-  transition: background-color 0.3s;
+  box-shadow: 0 5px 0 var(--ink);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
 .button:hover:not(:disabled) {
-  background-color: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 7px 0 var(--ink);
+}
+
+.button:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 1px 0 var(--ink);
 }
 
 .button:disabled {
-  background-color: #ccc;
-  cursor: not-allowed;
+  opacity: 0.7;
+  cursor: wait;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .container {
-    padding: 15px;
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.95);
   }
-  
-  .formCard {
-    min-width: 250px;
-  }
-  
-  .gameIdContainer {
-    flex-direction: column;
-    gap: 8px;
-  }
-  
-  .copyContainer {
-    flex-direction: column;
-    gap: 8px;
-    text-align: center;
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
 @media (max-width: 480px) {
-  .container {
-    padding: 10px;
-  }
-  
   .formCard {
-    min-width: 200px;
-    padding: 20px;
+    box-shadow: 6px 6px 0 var(--ink);
+    border-radius: 20px;
   }
-  
-  .title {
-    margin-bottom: 20px;
-  }
-  
-  .formGroup {
-    margin-bottom: 15px;
-  }
-  
-  .gameIdContainer {
-    flex-direction: column;
-    gap: 6px;
-  }
-  
-  .refreshButton {
-    padding: 12px;
-    min-width: 48px;
-    height: 48px;
-  }
-  
-  .refreshButton svg {
-    width: 18px;
-    height: 18px;
-  }
-  
-  .copyContainer {
-    flex-direction: column;
-    gap: 6px;
-    padding: 6px 10px;
-  }
-  
-  .copyButton {
-    padding: 5px 10px;
-    font-size: 12px;
-  }
-} 
+}

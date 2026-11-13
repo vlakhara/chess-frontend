@@ -12,6 +12,7 @@ import {
 import {
   Board as BoardType,
   GameState,
+  GameStatus,
   Move,
   Piece,
   PieceType,
@@ -77,9 +78,12 @@ const Board = ({
 
     if (game.winner) {
       setShowWinnerDialog(true);
-      setTimeout(() => {
-        handleClick();
-      }, 100);
+      // Only celebrate if you are the one who won.
+      if (game.winner.color === player.color) {
+        setTimeout(() => {
+          handleClick();
+        }, 100);
+      }
     }
   }, [game]);
 
@@ -165,6 +169,13 @@ const Board = ({
         }, 100);
       }
 
+      // The mover's copy of the game must carry the final status too,
+      // otherwise the winner never sees "You won" (only the opponent got it
+      // back from the server).
+      let status = game.status;
+      if (isCheckMate) status = GameStatus.CHECKMATE;
+      else if (isStalemate) status = GameStatus.STALEMATE;
+
       if (winner) {
         setShowWinnerDialog(true);
       }
@@ -179,6 +190,7 @@ const Board = ({
           lastMove: _history,
         },
         board: { pieces: _board },
+        status,
         currentTurn: nextTurn === player.color ? player : opponent,
         winner: winner ? game.currentTurn : null,
         check: isCheck,
@@ -230,8 +242,16 @@ const Board = ({
     }
 
     const isHighlight = moves.find((move) => move.x === x && move.y === y);
-    if (isHighlight) return "#FCEF91";
-    return (x + y) % 2 === 0 ? "#004030" : "#4A9782";
+    if (isHighlight) return "#f6b800";
+
+    const last = history[history.length - 1];
+    const isLastMove =
+      last &&
+      ((last.from.x === x && last.from.y === y) ||
+        (last.to.x === x && last.to.y === y));
+    if (isLastMove) return (x + y) % 2 === 0 ? "#f0cf7a" : "#e3a95a";
+
+    return (x + y) % 2 === 0 ? "#f3e5c4" : "#d98b4d";
   };
 
   const handleClick = () => {
@@ -296,10 +316,24 @@ const Board = ({
         <BoardLabel
           text={opponent ? opponent.name : "Waiting for opponent..."}
           position="top-left"
-          dark
+          color={opponent?.color ?? (player.color === "white" ? "black" : "white")}
+          active={isGameReady && turn !== player.color}
+          note={isGameReady && turn !== player.color ? "thinking" : undefined}
         />
         {/* Player name - bottom right, outside board */}
-        <BoardLabel text={player.name} position="bottom-right" />
+        <BoardLabel
+          text={`${player.name} (you)`}
+          position="bottom-right"
+          color={player.color}
+          active={isGameReady && turn === player.color}
+          note={
+            isGameReady && turn === player.color
+              ? isCheck
+                ? "you're in check"
+                : "your move"
+              : undefined
+          }
+        />
         <div
           className={styles.chessBoard}
           style={{
@@ -332,6 +366,8 @@ const Board = ({
         onClose={resetBoard}
         reason={game.status}
         isStalemate={isStalemate}
+        playerColor={player.color}
+        opponentName={opponent?.name}
       />
       {promotionDialog}
     </div>

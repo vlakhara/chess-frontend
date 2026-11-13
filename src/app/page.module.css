@@ -9,7 +9,32 @@
   overflow: hidden;
 }
 
-/* Responsive adjustments */
+.credit {
+  position: fixed;
+  bottom: 12px;
+  right: 12px;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  font: 500 0.78rem var(--font-code);
+  color: var(--ink-soft);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.credit strong {
+  color: var(--ink);
+}
+
+.credit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 0 var(--ink);
+}
+
 @media (max-width: 768px) {
   .container {
     padding: 10px;

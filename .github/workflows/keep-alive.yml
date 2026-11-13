@@ -24,8 +24,8 @@ jobs:
           BACKEND_URL: ${{ vars.BACKEND_URL }}
         run: |
           if [ -z "$BACKEND_URL" ]; then
-            echo "BACKEND_URL variable is not set; nothing to ping."
-            exit 0
+            echo "::error title=BACKEND_URL is not set::Add a repository variable named BACKEND_URL (Settings > Secrets and variables > Actions > Variables) with your backend's public URL, e.g. https://your-service.onrender.com"
+            exit 1
           fi
           # A sleeping instance can take about a minute to cold start, so allow
           # a long timeout and a few retries.
