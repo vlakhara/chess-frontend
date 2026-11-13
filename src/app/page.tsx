@@ -4,6 +4,7 @@ import { GameState, GameStatus, Player } from "@/brain/types";
 import Board from "@/components/Board";
 import GameJoinForm from "@/components/GameJoinForm";
 import ServerOffline from "@/components/ServerOffline";
+import WaitingRoom from "@/components/WaitingRoom";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import {
@@ -116,51 +117,15 @@ export default function Home() {
       <>
         <GameJoinForm setPlayer={setPlayer} setGame={setGame} />
 
-        {/* Built by credit - only shown on join form */}
-        <div
-          style={{
-            position: "fixed",
-            bottom: "10px",
-            right: "10px",
-            zIndex: 1000,
-          }}
+        <a
+          className={styles.credit}
+          href="https://github.com/vlakhara"
+          target="_blank"
+          rel="noopener noreferrer"
         >
-          <a
-            href="https://github.com/vlakhara"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: "#666",
-              textDecoration: "none",
-              fontSize: "12px",
-              padding: "8px 12px",
-              backgroundColor: "rgba(255, 255, 255, 0.9)",
-              borderRadius: "20px",
-              backdropFilter: "blur(10px)",
-              border: "1px solid rgba(0, 0, 0, 0.1)",
-              transition: "all 0.2s ease",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = "rgba(255, 255, 255, 1)";
-              e.currentTarget.style.transform = "translateY(-1px)";
-              e.currentTarget.style.boxShadow = "0 2px 8px rgba(0, 0, 0, 0.15)";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor =
-                "rgba(255, 255, 255, 0.9)";
-              e.currentTarget.style.transform = "translateY(0)";
-              e.currentTarget.style.boxShadow = "none";
-            }}
-          >
-            <span>Built by</span>
-            <span style={{ fontWeight: "bold", color: "#333" }}>
-              Vipul Lakhara
-            </span>
-          </a>
-        </div>
+          <span>Built by</span>
+          <strong>Vipul Lakhara</strong>
+        </a>
       </>
     );
   }
@@ -168,73 +133,7 @@ export default function Home() {
   return (
     <div className={styles.container}>
       {game.status === GameStatus.WAITING_FOR_PLAYER && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            zIndex: 999,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "20px",
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "white",
-              padding: "clamp(20px, 5vw, 40px)",
-              borderRadius: "10px",
-              textAlign: "center",
-              boxShadow: "0 4px 6px rgba(0, 0, 0, 0.1)",
-              maxWidth: "min(90vw, 400px)",
-              width: "100%",
-            }}
-          >
-            <h2
-              style={{
-                marginBottom: "20px",
-                color: "#333",
-                fontSize: "clamp(1.2rem, 3vw, 1.5rem)",
-              }}
-            >
-              Waiting for Opponent
-            </h2>
-            <p
-              style={{
-                color: "#666",
-                marginBottom: "20px",
-                fontSize: "clamp(14px, 2vw, 16px)",
-              }}
-            >
-              Please wait for another player to join the game.
-            </p>
-            <div
-              style={{
-                width: "clamp(30px, 6vw, 40px)",
-                height: "clamp(30px, 6vw, 40px)",
-                border: "4px solid #f3f3f3",
-                borderTop: "4px solid #3498db",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-                margin: "0 auto",
-              }}
-            />
-            <style jsx>{`
-              @keyframes spin {
-                0% {
-                  transform: rotate(0deg);
-                }
-                100% {
-                  transform: rotate(360deg);
-                }
-              }
-            `}</style>
-          </div>
-        </div>
+        <WaitingRoom gameId={game.gameId} playerName={player.name} />
       )}
 
       <Board

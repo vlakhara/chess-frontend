@@ -29,8 +29,9 @@
   max-height: var(--max-board-size);
   min-width: var(--min-board-size);
   min-height: var(--min-board-size);
-  box-shadow: 0 0 10px #fff;
-  border-radius: 10px;
+  border: 6px solid var(--ink);
+  border-radius: 16px;
+  box-shadow: 8px 8px 0 var(--ink);
   overflow: hidden;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
@@ -46,7 +47,6 @@
   }
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
   .container {
     flex-direction: column;
@@ -55,10 +55,14 @@
     height: auto;
     min-height: 100vh;
   }
-  
+
   .boardWrapper {
     width: 100%;
-    max-width: 90vw;
+    max-width: 94vw;
+  }
+
+  .chessBoard {
+    box-shadow: 5px 5px 0 var(--ink);
   }
 }
 
@@ -67,12 +71,13 @@
     gap: 5px;
     padding: 5px;
   }
-  
+
   .boardWrapper {
-    max-width: 95vw;
+    max-width: 96vw;
   }
-  
+
   .chessBoard {
-    border-radius: 5px;
+    border-width: 4px;
+    border-radius: 10px;
   }
-} 
+}

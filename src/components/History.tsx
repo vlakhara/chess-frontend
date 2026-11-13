@@ -2,9 +2,17 @@
 
 import { Move, PieceType } from "@/brain/types";
 import React, { FC, useEffect, useRef } from "react";
+import styles from "@/styles/History.module.css";
 
 type Props = {
   history: Move[];
+};
+
+const notate = (move: Move) => {
+  if (move.isCastle) return move.to.y === 2 ? "o-o-o" : "o-o";
+  return `${move.piece.notation}${
+    move.capturedPiece ? (move.piece.type === PieceType.PAWN ? "dx" : "x") : ""
+  }${"abcdefgh".charAt(move.to.y)}${8 - move.to.x}`;
 };
 
 const History: FC<Props> = ({ history }) => {
@@ -16,41 +24,26 @@ const History: FC<Props> = ({ history }) => {
     }
   }, [history]);
 
+  const rows: { no: number; white: string; black?: string }[] = [];
+  history.forEach((move, i) => {
+    if (i % 2 === 0) rows.push({ no: i / 2 + 1, white: notate(move) });
+    else rows[rows.length - 1].black = notate(move);
+  });
+
   return (
-    <div
-      ref={historyRef}
-      style={{
-        position: "fixed",
-        top: "clamp(20px, 3vh, 32px)",
-        right: "clamp(10px, 2vw, 32px)",
-        width: "clamp(150px, 20vw, 220px)",
-        height: "clamp(150px, 30vh, 300px)",
-        padding: "clamp(0.5rem, 1vw, 1rem)",
-        backgroundColor: "#111",
-        color: "#eee",
-        fontFamily: "monospace",
-        fontSize: "clamp(0.7rem, 1.5vw, 1rem)",
-        lineHeight: "1.8",
-        borderRadius: "8px",
-        overflowY: "auto",
-        boxShadow: "0 0 10px rgba(255, 255, 255, 0.1)",
-        zIndex: 1000,
-      }}
-    >
-      {history.map((move, i) => (
-        <div key={i}>
-          {!move.isCastle
-            ? `${i + 1}. ${move.piece.notation}${
-                move.capturedPiece
-                  ? move.piece.type === PieceType.PAWN
-                    ? "dx"
-                    : "x"
-                  : ""
-              }${"abcdefgh".charAt(move.to.y)}${8 - move.to.x}`
-            : `${i + 1}. ${move.to.y === 2 ? "o-o-o" : "o-o"}`}
-        </div>
-      ))}
-    </div>
+    <aside className={styles.panel} aria-label="Move history">
+      <h3 className={styles.heading}>Moves</h3>
+      <div className={styles.list} ref={historyRef}>
+        {rows.length === 0 && <p className={styles.empty}>No moves yet.</p>}
+        {rows.map((row) => (
+          <div key={row.no} className={styles.row}>
+            <span className={styles.no}>{row.no}.</span>
+            <span>{row.white}</span>
+            <span>{row.black ?? ""}</span>
+          </div>
+        ))}
+      </div>
+    </aside>
   );
 };
 

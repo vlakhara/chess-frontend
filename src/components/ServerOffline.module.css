@@ -4,375 +4,153 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #004030 0%, #4A9782 100%);
   padding: 20px;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  gap: 30px;
-}
-
-.content {
-  background: rgba(26, 32, 44, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  padding: 40px;
-  text-align: center;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  max-width: 500px;
-  width: 100%;
-  animation: slideIn 0.6s ease-out;
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  gap: 24px;
+  overflow-y: auto;
 }
 
 .chessPiece {
-  margin-bottom: clamp(20px, 4vw, 40px);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(10px, 2vw, 20px);
 }
 
 .kingQueenContainer {
   display: flex;
-  gap: clamp(20px, 5vw, 60px);
-  align-items: center;
+  gap: clamp(20px, 5vw, 50px);
+  align-items: flex-end;
 }
 
-.blackKing, .whiteQueen {
+.blackKing,
+.whiteQueen {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  animation: bounce 2s ease-in-out infinite;
-}
-
-.blackKing {
-  animation-delay: 0s;
+  animation: bounce 1.8s ease-in-out infinite;
 }
 
 .whiteQueen {
-  animation-delay: 0.5s;
+  animation-delay: 0.4s;
 }
 
 .chessSymbol {
-  font-size: clamp(3rem, 8vw, 6rem);
-  font-weight: bold;
-  animation: sparkle 2s ease-in-out infinite;
+  font-size: clamp(3.4rem, 9vw, 5.5rem);
+  line-height: 1;
 }
 
 .blackKing .chessSymbol {
-  color: #2d3748;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  color: var(--ink);
 }
 
 .whiteQueen .chessSymbol {
-  color: #f7fafc;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  color: #fffdf6;
+  -webkit-text-stroke: 2px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 4px 0 var(--ink);
 }
 
-@keyframes bounce {
-  0%, 20%, 50%, 80%, 100% {
-    transform: translateY(0);
-  }
-  40% {
-    transform: translateY(-10px);
-  }
-  60% {
-    transform: translateY(-5px);
-  }
-}
-
-@keyframes sparkle {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.8;
-    transform: scale(1.1);
-  }
+.content {
+  width: 100%;
+  max-width: 460px;
+  padding: clamp(24px, 5vw, 36px);
+  text-align: center;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 24px;
+  box-shadow: 8px 8px 0 var(--ink);
+  animation: pop 0.45s cubic-bezier(0.3, 1.5, 0.5, 1);
 }
 
 .title {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #ffffff;
-  margin-bottom: 15px;
-  background: linear-gradient(45deg, #4A9782, #68d391);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: float 3s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
+  margin-bottom: 8px;
+  font-size: clamp(2rem, 7vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
 }
 
 .message {
-  font-size: 1.2rem;
-  color: #e2e8f0;
-  margin-bottom: 25px;
-  line-height: 1.6;
-  animation: typewriter 2s ease-out 0.5s both;
-}
-
-@keyframes typewriter {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+  margin-bottom: 16px;
+  color: var(--ink-soft);
+  font-family: var(--font-code);
+  font-weight: 500;
+  min-height: 1.5em;
 }
 
 .status {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 30px;
-  font-size: 1rem;
-  color: #fc8181;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: #ffd9cc;
+  font-weight: 700;
+  font-size: 0.85rem;
 }
 
 .statusDot {
-  width: 12px;
-  height: 12px;
-  background: #e53e3e;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0.7);
-  }
-  70% {
-    box-shadow: 0 0 0 10px rgba(229, 62, 62, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(229, 62, 62, 0);
-  }
-}
-
-.retryButton {
-  background: linear-gradient(45deg, #004030, #4A9782);
-  color: white;
-  border: none;
-  padding: 15px 30px;
-  border-radius: 50px;
-  font-size: 1.1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 auto;
-  box-shadow: 0 4px 15px rgba(0, 64, 48, 0.4);
-  animation: buttonGlow 2s ease-in-out infinite;
-}
-
-@keyframes buttonGlow {
-  0%, 100% {
-    box-shadow: 0 4px 15px rgba(0, 64, 48, 0.4);
-  }
-  50% {
-    box-shadow: 0 4px 20px rgba(0, 64, 48, 0.6);
-  }
-}
-
-.retryButton:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 64, 48, 0.6);
-}
-
-.retryButton:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-
-.retrying {
-  background: linear-gradient(45deg, #48bb78, #38a169);
-}
-
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-.funFacts {
-  padding: 25px;
-  background: rgba(26, 32, 44, 0.9);
-  backdrop-filter: blur(10px);
-  border-radius: 15px;
-  border-left: 4px solid #4A9782;
-  animation: fadeInUp 0.8s ease-out 0.3s both;
-  width: 500px;
-  height: 120px;
-  text-align: center;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.funFacts p {
-  margin: 8px 0;
-  color: #e2e8f0;
-  font-size: 0.95rem;
-  line-height: 1.5;
-}
-
-.factText {
-  animation: factChange 0.6s ease-out;
-}
-
-@keyframes factChange {
-  0% {
-    opacity: 0;
-    transform: translateY(20px) scale(0.9);
-  }
-  50% {
-    opacity: 0.5;
-    transform: translateY(10px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  background: var(--orange);
+  animation: pulse 1.2s ease-in-out infinite;
 }
 
 .reconnectInfo {
-  margin: 25px 0;
-  text-align: center;
-}
-
-.reconnectInfo p {
-  color: #e2e8f0;
-  font-size: 1rem;
-  margin-bottom: 15px;
-  font-weight: 500;
+  margin-top: 16px;
 }
 
 .countdown {
-  margin: 10px 0;
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #2d3748, #4a5568);
-  border-radius: 20px;
-  border: 1px solid #4a5568;
-  display: inline-block;
+  font: 500 0.82rem var(--font-code);
+  color: var(--ink-soft);
 }
 
-.countdown span {
-  color: #68d391;
-  font-size: 0.9rem;
-  font-weight: 600;
-  animation: countdownPulse 1s ease-in-out infinite;
-}
-
-@keyframes countdownPulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.7;
-  }
-}
-
-.progressBar {
+.funFacts {
   width: 100%;
-  height: 8px;
-  background: #e2e8f0;
-  border-radius: 4px;
-  overflow: hidden;
-  margin: 0 auto;
-  max-width: 300px;
+  max-width: 460px;
+  text-align: center;
+  min-height: 3.2em;
 }
 
-.progressFill {
-  height: 100%;
-  background: linear-gradient(45deg, #004030, #4A9782);
-  border-radius: 4px;
-  transition: width 0.3s ease;
-  animation: progressPulse 2s ease-in-out infinite;
+.factText {
+  color: var(--ink-soft);
+  line-height: 1.5;
+  font-family: var(--font-accent);
+  font-style: italic;
+  font-size: 1.15rem;
+  animation: fade 0.6s ease-out;
 }
 
-@keyframes progressPulse {
-  0%, 100% {
-    opacity: 1;
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
   }
+  40% {
+    transform: translateY(-12px);
+  }
+}
+
+@keyframes pulse {
   50% {
-    opacity: 0.8;
+    opacity: 0.3;
+    transform: scale(0.7);
   }
 }
 
-@media (max-width: 768px) {
-  .content {
-    padding: 30px 20px;
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.95);
   }
-  
-  .title {
-    font-size: 2rem;
+  to {
+    opacity: 1;
+    transform: none;
   }
-  
-  .message {
-    font-size: 1.1rem;
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
-  
-  .king {
-    width: 60px;
-    height: 90px;
-  }
-  
-  .crown {
-    width: 45px;
-    height: 25px;
-  }
-  
-  .body {
-    width: 30px;
-    height: 45px;
-  }
-  
-  .base {
-    width: 40px;
-    height: 12px;
-  }
-} 
+}

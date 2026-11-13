@@ -23,8 +23,10 @@ const BoardSquare: React.FC<BoardSquareProps> = ({
   playerColor,
 }) => {
   const pieceClassName = `${styles.piece} ${
-    isActive ? styles.active : ""
-  } ${isCheckMate && piece?.color ? styles.checkmate : ""}`;
+    piece?.color === "white" ? styles.whitePiece : styles.blackPiece
+  } ${isActive ? styles.active : ""} ${
+    isCheckMate && piece?.color ? styles.checkmate : ""
+  }`;
 
   return (
     <div
@@ -35,16 +37,13 @@ const BoardSquare: React.FC<BoardSquareProps> = ({
       }}
       onClick={() => onClick(position)}
     >
-      <p
-        className={pieceClassName}
-        style={{
-          color: piece?.color,
-        }}
-      >
-        {piece && CHARACTER_MAP[piece.type][piece.color]}
+      {/* Both colours use the solid glyphs; the colour is applied in CSS so
+          white pieces stay readable on light squares. */}
+      <p className={pieceClassName}>
+        {piece && CHARACTER_MAP[piece.type].black}
       </p>
     </div>
   );
 };
 
-export default BoardSquare; 
+export default BoardSquare;

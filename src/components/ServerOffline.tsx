@@ -101,11 +101,11 @@ export default function ServerOffline({
       <div className={styles.content}>
         <h1 className={styles.title}>Server is Offline</h1>
 
-        <p className={styles.message}>Attempting to reconnect{dots}</p>
+        <p className={styles.message}>Trying to reconnect{dots}</p>
 
         <div className={styles.status}>
           <div className={styles.statusDot}></div>
-          <span>Connection lost</span>
+          <span>Server is not responding</span>
         </div>
 
         <div className={styles.reconnectInfo}>
