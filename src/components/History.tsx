@@ -8,6 +8,8 @@ import styles from "@/styles/History.module.css";
 
 type Props = {
   history: Move[];
+  /** Opens the puzzle maker for this game. */
+  onMakePuzzle?: () => void;
 };
 
 type Entry = {
@@ -119,7 +121,7 @@ const Cell: FC<{ entry?: Entry; latest: boolean }> = ({ entry, latest }) => {
   );
 };
 
-const History: FC<Props> = ({ history }) => {
+const History: FC<Props> = ({ history, onMakePuzzle }) => {
   const listRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const entries = useMemo(() => buildEntries(history), [history]);
@@ -174,6 +176,16 @@ const History: FC<Props> = ({ history }) => {
             </div>
           ))}
         </div>
+        {onMakePuzzle && (
+          <button
+            type="button"
+            className={styles.puzzleBtn}
+            onClick={onMakePuzzle}
+            disabled={entries.length === 0}
+          >
+            ✎ Make a puzzle from this game
+          </button>
+        )}
       </aside>
     </>
   );

@@ -25,12 +25,13 @@ export interface MovePayload {
 /** Plays one wire move on a board, using the normal rules code. */
 export const replayMove = (
   before: Board,
-  m: MovePayload["move"]
+  m: MovePayload["move"],
+  silent = false
 ): { after: Board; played: Move } | null => {
   const piece = before[m.from.x]?.[m.from.y];
   if (!piece) return null;
 
-  let after = movePiece(before, m.from, m.to);
+  let after = movePiece(before, m.from, m.to, silent);
   if (m.promotedTo) {
     after = promote(after, m.promotedTo, m.to, piece.color);
   }
@@ -56,7 +57,7 @@ export const rebuildGame = (base: GameState, moves: MovePayload[]): GameState =>
   let pieces = base.board.pieces;
   const played: Move[] = [];
   for (const m of moves) {
-    const result = replayMove(pieces, m.move);
+    const result = replayMove(pieces, m.move, true);
     if (!result) break;
     pieces = result.after;
     played.push(result.played);

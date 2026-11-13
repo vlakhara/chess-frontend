@@ -27,6 +27,7 @@ import History from "./History";
 import { usePromotionDialog } from "./usePromotionDialog";
 import WinnerDialog from "./WinnerDialog";
 import GameActions from "./GameActions";
+import MakePuzzleDialog from "./puzzle/MakePuzzleDialog";
 import ConfirmDialog from "./ConfirmDialog";
 import { getLatency, onMessage, sendMessage, SocketMessage } from "@/lib/socket";
 import BoardLabel from "./BoardLabel";
@@ -84,6 +85,7 @@ const Board = ({
   const [confirm, setConfirm] = useState<"resign" | "exit" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [rematchRequested, setRematchRequested] = useState(false);
+  const [puzzleDialog, setPuzzleDialog] = useState(false);
   const [now, setNow] = useState(() => Date.now());
 
   const timed = timeControl.base > 0 && clock !== null;
@@ -611,7 +613,10 @@ const Board = ({
           <i /> {latency} ms
         </div>
       )}
-      <History history={history} />
+      <History history={history} onMakePuzzle={() => setPuzzleDialog(true)} />
+      {puzzleDialog && (
+        <MakePuzzleDialog history={history} onClose={() => setPuzzleDialog(false)} />
+      )}
       <WinnerDialog
         winner={winner}
         isOpen={showWinnerDialog}

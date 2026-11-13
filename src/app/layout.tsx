@@ -20,6 +20,8 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  // Absolute base for the preview images that X and other apps fetch.
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://ch3ss.netlify.app"),
   title: "Ch3ss",
   description: "A multiplayer chess game. Share a code, play a friend.",
 };

@@ -171,3 +171,24 @@
     cursor: pointer;
   }
 }
+
+.puzzleBtn {
+  margin: 10px 12px 12px;
+  padding: 9px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 12px;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.puzzleBtn:hover:not(:disabled) {
+  background: var(--mustard);
+}
+
+.puzzleBtn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
