@@ -1,0 +1,63 @@
+.bar {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 0;
+  display: flex;
+  gap: 8px;
+  z-index: 2;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-weight: 700;
+  font-size: clamp(12px, 2vw, 14px);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.btn span {
+  font-size: 1.05em;
+  line-height: 1;
+}
+
+.btn:hover:not(:disabled) {
+  background: var(--mustard);
+  transform: translateY(-2px);
+  box-shadow: 0 3px 0 var(--ink);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.warn:hover:not(:disabled) {
+  background: #ff7a59;
+}
+
+@media (max-width: 768px) {
+  /* Sits under the board, below the player name pill. */
+  .bar {
+    top: calc(100% + 58px);
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
+
+@media (max-width: 420px) {
+  .btn {
+    padding: 7px 11px;
+  }
+}

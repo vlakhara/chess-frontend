@@ -198,3 +198,19 @@
     transform: rotate(-10deg) scale(1.08);
   }
 }
+
+.confirm {
+  max-width: 400px;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.danger {
+  background: #ff7a59;
+}

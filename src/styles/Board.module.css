@@ -51,7 +51,7 @@
   .container {
     flex-direction: column;
     gap: 10px;
-    padding: 10px;
+    padding: 10px 10px 130px;
     height: auto;
     min-height: 100vh;
   }
@@ -110,4 +110,27 @@
 
 .poor i {
   background: #d63014;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1100;
+  padding: 10px 20px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--mustard);
+  box-shadow: 0 4px 0 var(--ink);
+  font-weight: 700;
+  font-size: 0.9rem;
+  animation: toastIn 0.3s cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+
+@keyframes toastIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
 }

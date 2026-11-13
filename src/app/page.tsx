@@ -11,6 +11,7 @@ import {
   initializeSocket,
   getReconnectAttempts,
   getSocketState,
+  sendMessage,
 } from "@/lib/socket";
 
 export default function Home() {
@@ -83,7 +84,14 @@ export default function Home() {
   return (
     <div className={styles.container}>
       {game.status === GameStatus.WAITING_FOR_PLAYER && (
-        <WaitingRoom gameId={game.gameId} playerName={player.name} />
+        <WaitingRoom
+          gameId={game.gameId}
+          playerName={player.name}
+          onCancel={() => {
+            sendMessage("LEAVE", { gameId: game.gameId });
+            setGame(null);
+          }}
+        />
       )}
 
       <Board

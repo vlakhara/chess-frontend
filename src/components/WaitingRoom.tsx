@@ -6,9 +6,10 @@ import styles from "@/styles/WaitingRoom.module.css";
 interface WaitingRoomProps {
   gameId: string;
   playerName: string;
+  onCancel: () => void;
 }
 
-const WaitingRoom = ({ gameId, playerName }: WaitingRoomProps) => {
+const WaitingRoom = ({ gameId, playerName, onCancel }: WaitingRoomProps) => {
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -44,6 +45,9 @@ const WaitingRoom = ({ gameId, playerName }: WaitingRoomProps) => {
           <small>{copied ? "Copied!" : "Tap to copy"}</small>
         </button>
         <p className={styles.hint}>You are playing white, so you move first.</p>
+        <button type="button" className={styles.cancel} onClick={onCancel}>
+          Cancel game
+        </button>
       </div>
     </div>
   );

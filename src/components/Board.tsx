@@ -24,6 +24,8 @@ import { useEffect, useRef, useState } from "react";
 import History from "./History";
 import { usePromotionDialog } from "./usePromotionDialog";
 import WinnerDialog from "./WinnerDialog";
+import GameActions from "./GameActions";
+import ConfirmDialog from "./ConfirmDialog";
 import { getLatency, onMessage, sendMessage, SocketMessage } from "@/lib/socket";
 import BoardLabel from "./BoardLabel";
 import BoardSquare from "./BoardSquare";
@@ -59,6 +61,15 @@ const Board = ({
   const [isStalemate, setIsStalemate] = useState(false);
   const { askPromotion, dialog: promotionDialog } = usePromotionDialog();
   const [latency, setLatency] = useState<number | null>(null);
+  const [drawState, setDrawState] = useState<"idle" | "offered">("idle");
+  const [incomingDraw, setIncomingDraw] = useState(false);
+  const [confirm, setConfirm] = useState<"resign" | "exit" | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const showNotice = (text: string) => {
+    setNotice(text);
+    setTimeout(() => setNotice(null), 3500);
+  };
 
   // Show the live round-trip time so a slow connection is visible.
   useEffect(() => {
@@ -84,6 +95,12 @@ const Board = ({
     setIsCheck(game.check);
     setIsCheckMate(game.checkmate);
     setIsStalemate(game.stalemate);
+
+    if (game.status === GameStatus.DRAW) {
+      setShowWinnerDialog(true);
+      setIncomingDraw(false);
+      setDrawState("idle");
+    }
 
     if (game.winner) {
       setShowWinnerDialog(true);
@@ -208,6 +225,9 @@ const Board = ({
       };
 
       setGame(_game);
+      // A move lapses any pending draw offer.
+      setDrawState("idle");
+      setIncomingDraw(false);
       // Send just the move (a few hundred bytes) instead of the whole game.
       // The opponent replays it with the same rules code.
       sendMessage("MOVE", {
@@ -234,6 +254,39 @@ const Board = ({
     }
   };
 
+  const opponentPlayer = () =>
+    opponent ?? (player.color === "white" ? game.black : game.white);
+
+  const resign = () => {
+    setConfirm(null);
+    sendMessage("RESIGN", { gameId: game.gameId });
+    setGame({ ...game, status: GameStatus.RESIGNED, winner: opponentPlayer() });
+  };
+
+  const offerDraw = () => {
+    sendMessage("DRAW_OFFER", { gameId: game.gameId });
+    setDrawState("offered");
+    showNotice("Draw offered. Waiting for a reply.");
+  };
+
+  const answerDraw = (accept: boolean) => {
+    setIncomingDraw(false);
+    sendMessage("DRAW_RESPONSE", { gameId: game.gameId, accept });
+    if (accept) setGame({ ...game, status: GameStatus.DRAW });
+  };
+
+  // Leave for good: tell the server, then go back to the lobby.
+  const leaveGame = () => {
+    setConfirm(null);
+    sendMessage("LEAVE", { gameId: game.gameId });
+    resetBoard();
+  };
+
+  const requestExit = () => {
+    if (isGameReady) setConfirm("exit");
+    else leaveGame();
+  };
+
   const resetStates = () => {
     setActivePiece(null);
     setSelectedPosition(null);
@@ -249,6 +302,8 @@ const Board = ({
     setHistory([]);
     setTurn("white");
     setIsStalemate(false);
+    setDrawState("idle");
+    setIncomingDraw(false);
     setBoard([]);
     setGame(null);
   };
@@ -378,6 +433,8 @@ const Board = ({
         }
         if (m.move.isCastle) played.isCastle = true;
 
+        setIncomingDraw(false);
+        setDrawState("idle");
         setGame({
           ...current,
           history: {
@@ -398,11 +455,25 @@ const Board = ({
         });
       }
 
-      // The opponent disconnected: the win is ours, and our board is correct.
-      if (data.type === "OPPONENT_LEFT") {
+      // The opponent resigned or disconnected: the win is ours, and our
+      // board is correct.
+      if (data.type === "OPPONENT_LEFT" || data.type === "OPPONENT_RESIGNED") {
         const { game: current, player: me } = latest.current;
-        if (current.winner || current.stalemate) return;
+        if (current.winner || current.stalemate || current.status === GameStatus.DRAW) return;
         setGame({ ...current, status: GameStatus.RESIGNED, winner: me });
+      }
+
+      if (data.type === "DRAW_OFFERED") {
+        if (latest.current.game.status === GameStatus.IN_PROGRESS) setIncomingDraw(true);
+      }
+
+      if (data.type === "DRAW_ACCEPTED") {
+        setGame({ ...latest.current.game, status: GameStatus.DRAW });
+      }
+
+      if (data.type === "DRAW_DECLINED") {
+        setDrawState("idle");
+        showNotice("Draw declined. The game goes on.");
       }
     };
 
@@ -441,6 +512,13 @@ const Board = ({
           }
           captured={orderTaken(player.color === "white" ? takenByWhite : takenByBlack)}
           lead={Math.max(0, player.color === "white" ? whiteLead : -whiteLead)}
+        />
+        <GameActions
+          inProgress={isGameReady}
+          drawState={drawState}
+          onOfferDraw={offerDraw}
+          onResign={() => setConfirm("resign")}
+          onExit={requestExit}
         />
         <div
           className={styles.chessBoard}
@@ -526,13 +604,54 @@ const Board = ({
       <WinnerDialog
         winner={winner}
         isOpen={showWinnerDialog}
-        onClose={resetBoard}
+        onClose={leaveGame}
         reason={game.status}
         isStalemate={isStalemate}
+        isDraw={game.status === GameStatus.DRAW}
         playerColor={player.color}
         opponentName={opponent?.name}
       />
       {promotionDialog}
+      {confirm === "resign" && (
+        <ConfirmDialog
+          kicker="Resign"
+          title={<>Give up this <em>game?</em></>}
+          text="Your opponent wins and the game ends right away."
+          confirmLabel="Yes, resign"
+          cancelLabel="Keep playing"
+          danger
+          onConfirm={resign}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
+      {confirm === "exit" && (
+        <ConfirmDialog
+          kicker="Exit"
+          title={<>Leave the <em>game?</em></>}
+          text="Leaving a game in progress counts as a resignation."
+          confirmLabel="Leave game"
+          cancelLabel="Stay"
+          danger
+          onConfirm={leaveGame}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
+      {incomingDraw && !showWinnerDialog && (
+        <ConfirmDialog
+          kicker="Draw offer"
+          title={<>{opponent?.name ?? "Your opponent"} offers a <em>draw</em></>}
+          text="Accept to end the game as a draw, or decline and keep playing."
+          confirmLabel="Accept draw"
+          cancelLabel="Decline"
+          onConfirm={() => answerDraw(true)}
+          onCancel={() => answerDraw(false)}
+        />
+      )}
+      {notice && (
+        <div className={styles.toast} role="status">
+          {notice}
+        </div>
+      )}
     </div>
   );
 };

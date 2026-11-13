@@ -156,3 +156,19 @@
     opacity: 1;
   }
 }
+
+.cancel {
+  margin-top: 16px;
+  padding: 8px 20px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cancel:hover {
+  background: var(--ink);
+  color: var(--paper);
+}
