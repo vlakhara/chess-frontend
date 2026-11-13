@@ -19,7 +19,7 @@ const GameJoinForm = ({ notice = "" }: GameJoinFormProps) => {
   const [isJoining, setIsJoining] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
-  const [timeIndex, setTimeIndex] = useState(0);
+  const [timeIndex, setTimeIndex] = useState(3); // 10 | 0
   const [invited, setInvited] = useState(false);
 
   // Generate initial game ID on component mount, or pick up an invite link
@@ -265,6 +265,14 @@ const GameJoinForm = ({ notice = "" }: GameJoinFormProps) => {
         <button type="submit" disabled={isJoining} className={styles.button}>
           {isJoining ? "Joining..." : mode === "create" ? "Start game" : "Join game"}
         </button>
+
+        <a className={styles.puzzleLink} href="/puzzle/new">
+          <span aria-hidden="true">♞</span>
+          <span>
+            <b>Make a puzzle</b>
+            <small>Set up any position and share it as a link or image</small>
+          </span>
+        </a>
       </form>
     </div>
   );

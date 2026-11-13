@@ -38,6 +38,8 @@ export default function Home() {
   const [rematchOffered, setRematchOffered] = useState(false);
   const [opponentGone, setOpponentGone] = useState(false);
   const [boardKey, setBoardKey] = useState(0);
+  // The server predates rejoin, rematch and clocks (it sends no player token).
+  const [oldServer, setOldServer] = useState(false);
 
   const resetExtras = () => {
     setOpponentAway(false);
@@ -79,7 +81,8 @@ export default function Home() {
 
       switch (data.type) {
         case "SELF_JOIN": {
-          saveSession({ gameId: p.game.gameId, token: p.token });
+          setOldServer(!p.token);
+          if (p.token) saveSession({ gameId: p.game.gameId, token: p.token });
           setTimeControl(p.timeControl ?? UNTIMED);
           resetExtras();
           setPlayer(p.player);
@@ -229,6 +232,11 @@ export default function Home() {
   return (
     <div className={styles.container}>
       {pill}
+      {oldServer && (
+        <div className={styles.serverNote} role="status">
+          The game server is still on an older version, so clocks, rematch and rejoin are off for now.
+        </div>
+      )}
       {game.status === GameStatus.WAITING_FOR_PLAYER && (
         <WaitingRoom
           gameId={game.gameId}

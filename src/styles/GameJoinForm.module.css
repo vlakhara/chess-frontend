@@ -274,3 +274,36 @@
   font-size: 0.9rem;
   text-align: center;
 }
+
+.puzzleLink {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 12px 16px;
+  border: 2px dashed var(--ink);
+  border-radius: 16px;
+  color: var(--ink);
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+
+.puzzleLink:hover {
+  background: var(--mustard);
+  transform: translateY(-1px);
+}
+
+.puzzleLink > span:first-child {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.puzzleLink b {
+  display: block;
+  font-size: 0.98rem;
+}
+
+.puzzleLink small {
+  display: block;
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
