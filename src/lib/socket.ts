@@ -1,7 +1,9 @@
 let socket: WebSocket | null = null;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let reconnectAttempts = 0;
-let messageHandler: ((data: SocketMessage) => void) | null = null;
+const messageHandlers = new Set<(data: SocketMessage) => void>();
+const openHandlers = new Set<() => void>();
+const emit = (data: SocketMessage) => messageHandlers.forEach((h) => h(data));
 let pending: string[] = [];
 let listenersAttached = false;
 let heartbeat: ReturnType<typeof setInterval> | null = null;
@@ -58,7 +60,7 @@ const dispatchMessage = (event: MessageEvent) => {
     const text = String(event.data);
     // An older server doesn't know the heartbeat; ignore its complaint.
     if (/PING/.test(text)) return;
-    messageHandler?.({
+    emit({
       type: "ERROR",
       payload: { message: text.replace(/^\W+/, "") },
     });
@@ -70,7 +72,7 @@ const dispatchMessage = (event: MessageEvent) => {
     if (sent) latency = Math.max(0, Date.now() - sent);
     return;
   }
-  messageHandler?.(data);
+  emit(data);
 };
 
 const attachListeners = () => {
@@ -118,6 +120,7 @@ export const initializeSocket = (): WebSocket | null => {
         const queued = pending;
         pending = [];
         queued.forEach((raw) => ws.send(raw));
+        openHandlers.forEach((h) => h());
       };
 
       // Handlers registered earlier survive a reconnect.
@@ -199,13 +202,18 @@ const send = (raw: string) => {
   }
 };
 
-export const joinGame = (gameId: string, username: string) => {
+export const joinGame = (
+  gameId: string,
+  username: string,
+  timeControl?: { base: number; inc: number }
+) => {
   send(
     JSON.stringify({
       type: "JOIN",
       payload: {
         gameId,
         username,
+        ...(timeControl ? { timeControl } : {}),
       },
     })
   );
@@ -218,9 +226,21 @@ export const sendMessage = (
   send(JSON.stringify({ type, payload }));
 };
 
+/** Listen for server messages. Returns a function that stops listening. */
 export const onMessage = (callback: (data: SocketMessage) => void) => {
-  messageHandler = callback;
+  messageHandlers.add(callback);
   initializeSocket();
+  return () => {
+    messageHandlers.delete(callback);
+  };
+};
+
+/** Runs every time a connection opens (including after a reconnect). */
+export const onOpen = (callback: () => void) => {
+  openHandlers.add(callback);
+  return () => {
+    openHandlers.delete(callback);
+  };
 };
 
 export const onClose = (callback: () => void) => {

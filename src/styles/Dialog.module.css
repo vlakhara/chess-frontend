@@ -214,3 +214,27 @@
 .danger {
   background: #ff7a59;
 }
+
+.button:disabled {
+  opacity: 0.65;
+  cursor: default;
+  transform: none;
+  box-shadow: 0 5px 0 var(--ink);
+}
+
+.secondary {
+  display: block;
+  margin: 14px auto 0;
+  padding: 8px 18px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 700;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.secondary:hover {
+  background: var(--mustard);
+}

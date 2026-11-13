@@ -19,6 +19,8 @@ import {
   Player,
   Position,
 } from "@/brain/types";
+import { ClockState, TimeControl, remainingMs } from "@/lib/clock";
+import { MovePayload, replayMove } from "@/lib/replay";
 import Celebration from "./Celebration";
 import { useEffect, useRef, useState } from "react";
 import History from "./History";
@@ -37,6 +39,15 @@ interface BoardProps {
   isGameReady?: boolean;
   game: GameState;
   setGame: (game: GameState | null) => void;
+  timeControl?: TimeControl;
+  /** Latest clock from the server (null for untimed games). */
+  clock?: ClockState | null;
+  /** The opponent dropped off and may come back. */
+  opponentAway?: boolean;
+  /** The opponent has asked for a rematch. */
+  rematchOffered?: boolean;
+  /** The opponent left for good, so no rematch is possible. */
+  opponentGone?: boolean;
 }
 
 const Board = ({
@@ -45,6 +56,11 @@ const Board = ({
   isGameReady = true,
   game,
   setGame,
+  timeControl = { base: 0, inc: 0 },
+  clock = null,
+  opponentAway = false,
+  rematchOffered = false,
+  opponentGone = false,
 }: BoardProps) => {
   const [board, setBoard] = useState<BoardType>([]);
   const [turn, setTurn] = useState<"white" | "black">(player.color);
@@ -67,6 +83,20 @@ const Board = ({
   const [incomingDraw, setIncomingDraw] = useState(false);
   const [confirm, setConfirm] = useState<"resign" | "exit" | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [rematchRequested, setRematchRequested] = useState(false);
+  const [now, setNow] = useState(() => Date.now());
+
+  const timed = timeControl.base > 0 && clock !== null;
+
+  // Redraw the clocks while one is running.
+  useEffect(() => {
+    if (!clock?.turn) return;
+    const id = setInterval(() => setNow(Date.now()), 200);
+    return () => clearInterval(id);
+  }, [clock]);
+
+  const clockFor = (color: "white" | "black") =>
+    timed && clock ? remainingMs(clock, color, Math.max(now, clock.at)) : null;
 
   const showNotice = (text: string) => {
     setNotice(text);
@@ -100,6 +130,11 @@ const Board = ({
 
     if (game.status === GameStatus.DRAW) {
       setShowWinnerDialog(true);
+      setIncomingDraw(false);
+      setDrawState("idle");
+    }
+
+    if (game.status === GameStatus.TIMEOUT && game.winner) {
       setIncomingDraw(false);
       setDrawState("idle");
     }
@@ -284,6 +319,11 @@ const Board = ({
     resetBoard();
   };
 
+  const requestRematch = () => {
+    setRematchRequested(true);
+    sendMessage("REMATCH", { gameId: game.gameId });
+  };
+
   const requestExit = () => {
     if (isGameReady) setConfirm("exit");
     else leaveGame();
@@ -383,37 +423,10 @@ const Board = ({
       // The opponent's move, sent as just the move. Replay it on our board.
       if (data.type === "OPPONENT_MOVE" && payload) {
         const { game: current, player: me, opponent: them } = latest.current;
-        const m = payload as unknown as {
-          move: {
-            from: Position;
-            to: Position;
-            promotedTo?: PieceType;
-            isCastle?: boolean;
-          };
-          check: boolean;
-          checkmate: boolean;
-          stalemate: boolean;
-          winner: "white" | "black" | null;
-        };
-        const before = current.board.pieces;
-        const piece = before[m.move.from.x][m.move.from.y];
-        if (!piece) return;
-
-        let after = movePiece(before, m.move.from, m.move.to);
-        if (m.move.promotedTo) {
-          after = promote(after, m.move.promotedTo, m.move.to, piece.color);
-        }
-        const played: Move = {
-          from: m.move.from,
-          to: m.move.to,
-          piece,
-          capturedPiece: before[m.move.to.x][m.move.to.y],
-        };
-        if (m.move.promotedTo) {
-          played.isPromoted = true;
-          played.promotedTo = m.move.promotedTo;
-        }
-        if (m.move.isCastle) played.isCastle = true;
+        const m = payload as unknown as MovePayload;
+        const result = replayMove(current.board.pieces, m.move);
+        if (!result) return;
+        const { after, played } = result;
 
         setIncomingDraw(false);
         setDrawState("idle");
@@ -434,6 +447,18 @@ const Board = ({
           check: m.check,
           checkmate: m.checkmate,
           stalemate: m.stalemate,
+        });
+      }
+
+      // The server's clock ran out for somebody.
+      if (data.type === "TIME_UP" && payload) {
+        const { game: current, player: me, opponent: them } = latest.current;
+        const loser = (payload as { winner: "white" | "black" }).winner;
+        if (current.status !== GameStatus.IN_PROGRESS) return;
+        setGame({
+          ...current,
+          status: GameStatus.TIMEOUT,
+          winner: loser === me.color ? me : them,
         });
       }
 
@@ -459,11 +484,7 @@ const Board = ({
       }
     };
 
-    onMessage(handleMessage);
-
-    return () => {
-      // offMessage(handleMessage);
-    };
+    return onMessage(handleMessage);
   }, [setGame]);
 
   return (
@@ -475,7 +496,14 @@ const Board = ({
           position="top-left"
           color={opponent?.color ?? (player.color === "white" ? "black" : "white")}
           active={isGameReady && turn !== player.color}
-          note={isGameReady && turn !== player.color ? "thinking" : undefined}
+          note={
+            opponentAway && isGameReady
+              ? "reconnecting…"
+              : isGameReady && turn !== player.color
+              ? "thinking"
+              : undefined
+          }
+          clockMs={clockFor(opponent?.color ?? (player.color === "white" ? "black" : "white"))}
           captured={orderTaken(player.color === "white" ? takenByBlack : takenByWhite)}
           lead={Math.max(0, player.color === "white" ? -whiteLead : whiteLead)}
         />
@@ -494,6 +522,7 @@ const Board = ({
           }
           captured={orderTaken(player.color === "white" ? takenByWhite : takenByBlack)}
           lead={Math.max(0, player.color === "white" ? whiteLead : -whiteLead)}
+          clockMs={clockFor(player.color)}
         />
         <GameActions
           inProgress={isGameReady}
@@ -592,6 +621,18 @@ const Board = ({
         isDraw={game.status === GameStatus.DRAW}
         playerColor={player.color}
         opponentName={opponent?.name}
+        onRematch={requestRematch}
+        rematch={
+          opponentGone
+            ? "gone"
+            : rematchOffered
+            ? rematchRequested
+              ? "starting"
+              : "incoming"
+            : rematchRequested
+            ? "waiting"
+            : "idle"
+        }
       />
       {promotionDialog}
       {confirm === "resign" && (

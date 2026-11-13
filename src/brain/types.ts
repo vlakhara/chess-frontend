@@ -23,6 +23,7 @@ export enum GameStatus {
   STALEMATE = "STALEMATE",
   RESIGNED = "RESIGNED",
   DRAW = "DRAW",
+  TIMEOUT = "TIMEOUT",
 }
 
 export type Piece = {

@@ -49,3 +49,67 @@
     padding-top: 50px;
   }
 }
+
+.rejoin {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.rejoinCard {
+  width: 100%;
+  max-width: 400px;
+  padding: clamp(24px, 5vw, 36px);
+  text-align: center;
+  background: var(--paper);
+  border: 3px solid var(--ink);
+  border-radius: 24px;
+  box-shadow: 8px 8px 0 var(--ink);
+}
+
+.rejoinCard h1 {
+  margin: 14px 0 6px;
+  font-size: 1.9rem;
+  line-height: 1.1;
+}
+
+.rejoinCard h1 em {
+  color: var(--orange);
+}
+
+.rejoinCard p {
+  margin: 0 0 18px;
+  color: var(--ink-soft);
+}
+
+.rejoinCard button {
+  padding: 8px 16px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.rejoinCard button:hover {
+  background: var(--mustard);
+}
+
+.spinner {
+  display: inline-block;
+  width: 38px;
+  height: 38px;
+  border: 5px solid var(--paper-2);
+  border-top-color: var(--orange);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,5 +1,6 @@
 import React from "react";
 import { CHARACTER_MAP, Piece } from "@/brain/types";
+import { formatClock } from "@/lib/clock";
 import styles from "@/styles/BoardLabel.module.css";
 
 interface BoardLabelProps {
@@ -12,6 +13,8 @@ interface BoardLabelProps {
   captured?: Piece[];
   /** Material advantage in points (0 hides it). */
   lead?: number;
+  /** Time left in ms; omit for an untimed game. */
+  clockMs?: number | null;
 }
 
 const BoardLabel: React.FC<BoardLabelProps> = ({
@@ -22,6 +25,7 @@ const BoardLabel: React.FC<BoardLabelProps> = ({
   note,
   captured = [],
   lead = 0,
+  clockMs = null,
 }) => {
   const className = `${styles.label} ${
     position === "top-left" ? styles.topLeft : styles.bottomRight
@@ -45,6 +49,16 @@ const BoardLabel: React.FC<BoardLabelProps> = ({
         </span>
       )}
       {note && <span className={styles.note}>{note}</span>}
+      {clockMs !== null && (
+        <span
+          className={`${styles.clock} ${clockMs < 30000 ? styles.low : ""} ${
+            clockMs < 10000 ? styles.critical : ""
+          }`}
+          aria-label="Time left"
+        >
+          {formatClock(clockMs)}
+        </span>
+      )}
     </div>
   );
 };

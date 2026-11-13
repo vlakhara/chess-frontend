@@ -1,16 +1,44 @@
 "use client";
 
 import { useState } from "react";
+import { TimeControl, describeTimeControl } from "@/lib/clock";
 import styles from "@/styles/WaitingRoom.module.css";
 
 interface WaitingRoomProps {
   gameId: string;
   playerName: string;
+  timeControl?: TimeControl;
   onCancel: () => void;
 }
 
-const WaitingRoom = ({ gameId, playerName, onCancel }: WaitingRoomProps) => {
+const WaitingRoom = ({ gameId, playerName, timeControl, onCancel }: WaitingRoomProps) => {
   const [copied, setCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const inviteLink = () => `${window.location.origin}/?game=${gameId}`;
+  const canShare = typeof navigator !== "undefined" && typeof navigator.share === "function";
+
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(inviteLink());
+      setLinkCopied(true);
+      setTimeout(() => setLinkCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy invite link:", err);
+    }
+  };
+
+  const share = async () => {
+    try {
+      await navigator.share({
+        title: "Play chess with me",
+        text: `${playerName} invited you to a game of chess.`,
+        url: inviteLink(),
+      });
+    } catch {
+      /* the share sheet was dismissed */
+    }
+  };
 
   const copy = async () => {
     try {
@@ -44,7 +72,20 @@ const WaitingRoom = ({ gameId, playerName, onCancel }: WaitingRoomProps) => {
           <span>{gameId}</span>
           <small>{copied ? "Copied!" : "Tap to copy"}</small>
         </button>
-        <p className={styles.hint}>You are playing white, so you move first.</p>
+        <div className={styles.invite}>
+          <button type="button" className={styles.inviteBtn} onClick={copyLink}>
+            {linkCopied ? "Link copied!" : "Copy invite link"}
+          </button>
+          {canShare && (
+            <button type="button" className={styles.inviteBtn} onClick={share}>
+              Share…
+            </button>
+          )}
+        </div>
+        <p className={styles.hint}>
+          You are playing white, so you move first.
+          {timeControl && timeControl.base > 0 && <> Time: {describeTimeControl(timeControl)}.</>}
+        </p>
         <button type="button" className={styles.cancel} onClick={onCancel}>
           Cancel game
         </button>

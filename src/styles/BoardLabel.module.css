@@ -100,3 +100,34 @@
     display: none;
   }
 }
+
+.clock {
+  margin-left: 4px;
+  padding: 2px 8px;
+  border: 2px solid var(--ink);
+  border-radius: 8px;
+  background: #fffdf6;
+  font: 700 0.9rem var(--font-code);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.active .clock {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.clock.low {
+  background: var(--orange);
+  color: #fff;
+}
+
+.clock.critical {
+  animation: clockPulse 0.8s ease-in-out infinite;
+}
+
+@keyframes clockPulse {
+  50% {
+    transform: scale(1.08);
+  }
+}
