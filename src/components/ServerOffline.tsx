@@ -1,18 +1,37 @@
 import { useEffect, useState } from "react";
 import styles from "./ServerOffline.module.css";
-import { getSocketState } from "@/lib/socket";
+import { reconnectNow } from "@/lib/socket";
 
 interface ServerOfflineProps {
   reconnectAttempts: number;
+  phase?: "connecting" | "waking" | "offline";
 }
+
+const COPY = {
+  connecting: {
+    title: "Connecting",
+    message: "Setting up the board",
+    status: "Connecting to the server",
+  },
+  waking: {
+    title: "Waking the server up",
+    message: "Free hosting naps when idle. This can take up to a minute",
+    status: "Server is starting",
+  },
+  offline: {
+    title: "Server is offline",
+    message: "Still trying in the background",
+    status: "Server is not responding",
+  },
+} as const;
 
 export default function ServerOffline({
   reconnectAttempts,
+  phase = "offline",
 }: ServerOfflineProps) {
   const [dots, setDots] = useState("");
   const [currentFact, setCurrentFact] = useState(0);
-  const [countdown, setCountdown] = useState(30);
-  const [socketState, setSocketState] = useState<string>("UNKNOWN");
+  const copy = COPY[phase];
 
   const chessFacts = [
     "The longest chess game ever played lasted 269 moves!",
@@ -44,46 +63,13 @@ export default function ServerOffline({
 
     const factInterval = setInterval(() => {
       setCurrentFact((prev) => (prev + 1) % chessFacts.length);
-    }, 10000);
-
-    // Monitor socket state for debugging
-    const socketStateInterval = setInterval(() => {
-      const currentState = getSocketState();
-      setSocketState(currentState);
-
-      // Log if we see any unexpected state
-      if (
-        currentState !== "CLOSED" &&
-        currentState !== "CONNECTING" &&
-        currentState !== "OPEN"
-      ) {
-        console.warn("Unexpected socket state:", currentState);
-      }
-    }, 1000);
+    }, 8000);
 
     return () => {
       clearInterval(dotsInterval);
       clearInterval(factInterval);
-      clearInterval(socketStateInterval);
     };
   }, [chessFacts.length]);
-
-  // Countdown timer for next reconnection attempt
-  useEffect(() => {
-    if (reconnectAttempts > 0) {
-      setCountdown(30);
-      const countdownInterval = setInterval(() => {
-        setCountdown((prev) => {
-          if (prev <= 0) {
-            return 30; // Reset to 30 when it reaches 0
-          }
-          return prev - 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(countdownInterval);
-    }
-  }, [reconnectAttempts]);
 
   return (
     <div className={styles.container}>
@@ -98,32 +84,29 @@ export default function ServerOffline({
         </div>
       </div>
 
-      <div className={styles.content}>
-        <h1 className={styles.title}>Server is Offline</h1>
+      <div className={styles.content} role="status" aria-live="polite">
+        <h1 className={styles.title}>{copy.title}</h1>
 
-        <p className={styles.message}>Trying to reconnect{dots}</p>
+        <p className={styles.message}>
+          {copy.message}
+          {dots}
+        </p>
 
-        <div className={styles.status}>
+        <div className={`${styles.status} ${phase === "offline" ? "" : styles.statusOk}`}>
           <div className={styles.statusDot}></div>
-          <span>Server is not responding</span>
+          <span>{copy.status}</span>
         </div>
 
         <div className={styles.reconnectInfo}>
           <div className={styles.countdown}>
-            <span>Next attempt in: {countdown}s</span>
+            <span>
+              {reconnectAttempts > 0 ? `Attempt ${reconnectAttempts}` : "First attempt"}
+            </span>
           </div>
-          {/* Debug information - remove in production */}
-          {process.env.NODE_ENV === "development" && (
-            <div
-              style={{
-                fontSize: "12px",
-                color: "#666",
-                marginTop: "10px",
-                fontFamily: "monospace",
-              }}
-            >
-              Debug: Socket State: {socketState} | Attempts: {reconnectAttempts}
-            </div>
+          {phase !== "connecting" && (
+            <button type="button" className={styles.retry} onClick={reconnectNow}>
+              Try again now
+            </button>
           )}
         </div>
       </div>
@@ -135,4 +118,4 @@ export default function ServerOffline({
       </div>
     </div>
   );
-} 
+}

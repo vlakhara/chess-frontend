@@ -68,3 +68,35 @@
     display: none;
   }
 }
+
+.captured {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.05rem;
+  line-height: 1;
+  letter-spacing: -0.15em;
+  padding-left: 2px;
+}
+
+.capWhite {
+  color: #fffdf6;
+  -webkit-text-stroke: 0.04em #17140f;
+  paint-order: stroke fill;
+}
+
+.capBlack {
+  color: var(--ink);
+}
+
+.lead {
+  margin-left: 0.7em;
+  font: 700 0.72rem var(--font-code);
+  letter-spacing: 0;
+  color: var(--ink);
+}
+
+@media (max-width: 480px) {
+  .captured {
+    display: none;
+  }
+}

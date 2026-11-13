@@ -234,15 +234,6 @@ const Board = ({
 
   const getSquareColor = (position: Position) => {
     const { x, y } = position;
-    const piece = board[x][y];
-    const isKing = piece?.type === PieceType.KING;
-
-    if (isCheck && isKing && piece.color === turn) {
-      return "#8E1616";
-    }
-
-    const isHighlight = moves.find((move) => move.x === x && move.y === y);
-    if (isHighlight) return "#f6b800";
 
     const last = history[history.length - 1];
     const isLastMove =
@@ -253,6 +244,32 @@ const Board = ({
 
     return (x + y) % 2 === 0 ? "#f3e5c4" : "#d98b4d";
   };
+
+  // Captured pieces and material balance, derived from the move list.
+  const VALUES: Record<string, number> = {
+    PAWN: 1,
+    KNIGHT: 3,
+    BISHOP: 3,
+    ROOK: 5,
+    QUEEN: 9,
+    KING: 0,
+  };
+  const takenByWhite: Piece[] = [];
+  const takenByBlack: Piece[] = [];
+  history.forEach((m) => {
+    if (!m.capturedPiece) return;
+    (m.piece.color === "white" ? takenByWhite : takenByBlack).push(
+      m.capturedPiece
+    );
+  });
+  const sum = (list: Piece[]) =>
+    list.reduce((total, p) => total + (VALUES[p.type] ?? 0), 0);
+  const whiteLead = sum(takenByWhite) - sum(takenByBlack);
+  const orderTaken = (list: Piece[]) =>
+    [...list].sort((a, b) => (VALUES[b.type] ?? 0) - (VALUES[a.type] ?? 0));
+
+  const lastMove = history[history.length - 1];
+  const canMove = isGameReady && player.color === turn;
 
   const handleClick = () => {
     const end = Date.now() + 3 * 1000;
@@ -319,6 +336,8 @@ const Board = ({
           color={opponent?.color ?? (player.color === "white" ? "black" : "white")}
           active={isGameReady && turn !== player.color}
           note={isGameReady && turn !== player.color ? "thinking" : undefined}
+          captured={orderTaken(player.color === "white" ? takenByBlack : takenByWhite)}
+          lead={Math.max(0, player.color === "white" ? -whiteLead : whiteLead)}
         />
         {/* Player name - bottom right, outside board */}
         <BoardLabel
@@ -333,6 +352,8 @@ const Board = ({
                 : "your move"
               : undefined
           }
+          captured={orderTaken(player.color === "white" ? takenByWhite : takenByBlack)}
+          lead={Math.max(0, player.color === "white" ? whiteLead : -whiteLead)}
         />
         <div
           className={styles.chessBoard}
@@ -342,24 +363,69 @@ const Board = ({
         >
           {/* Chess board squares */}
           {board.map((row, x) =>
-            row.map((piece, y) => (
-              <BoardSquare
-                key={`${x}-${y}`}
-                piece={piece}
-                position={{ x, y }}
-                isCheckMate={isCheckMate && piece?.color === turn}
-                isActive={activePiece?.id === piece?.id}
-                getSquareColor={getSquareColor}
-                onClick={handleSquareClick}
-                playerColor={player.color}
-              />
-            ))
+            row.map((piece, y) => {
+              const isTarget = moves.some((m) => m.x === x && m.y === y);
+              const isSelected =
+                selectedPosition?.x === x && selectedPosition?.y === y;
+              // A capture is a target holding a piece, or a pawn moving
+              // diagonally onto an empty square (en passant).
+              const isCapture =
+                isTarget &&
+                (piece !== null ||
+                  (activePiece?.type === PieceType.PAWN &&
+                    selectedPosition !== null &&
+                    selectedPosition.y !== y));
+              return (
+                <BoardSquare
+                  key={`${x}-${y}`}
+                  piece={piece}
+                  position={{ x, y }}
+                  isCheckMate={isCheckMate && piece?.color === turn}
+                  isActive={activePiece?.id === piece?.id}
+                  getSquareColor={getSquareColor}
+                  onClick={handleSquareClick}
+                  playerColor={player.color}
+                  isTarget={isTarget}
+                  isCapture={isCapture}
+                  isSelected={isSelected}
+                  isLastTo={
+                    Boolean(lastMove) && lastMove.to.x === x && lastMove.to.y === y
+                  }
+                  isCheckKing={
+                    isCheck && piece?.type === PieceType.KING && piece.color === turn
+                  }
+                  isLight={(x + y) % 2 === 0}
+                  rank={y === (player.color === "white" ? 0 : 7) ? 8 - x : null}
+                  file={
+                    x === (player.color === "white" ? 7 : 0)
+                      ? "abcdefgh".charAt(y)
+                      : null
+                  }
+                  canDrag={canMove && piece?.color === player.color}
+                  onDragStart={(pos) => {
+                    // Selecting on drag start; don't toggle an already
+                    // selected piece off.
+                    if (
+                      !(
+                        selectedPosition?.x === pos.x &&
+                        selectedPosition?.y === pos.y
+                      )
+                    ) {
+                      handleSquareClick(pos);
+                    }
+                  }}
+                  onDrop={(pos) => {
+                    if (moves.some((m) => m.x === pos.x && m.y === pos.y)) {
+                      handleSquareClick(pos);
+                    }
+                  }}
+                />
+              );
+            })
           )}
         </div>
       </div>
-      <div className={styles.hideOnMobile}>
-        <History history={history} />
-      </div>
+      <History history={history} />
       <WinnerDialog
         winner={winner}
         isOpen={showWinnerDialog}

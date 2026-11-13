@@ -1,4 +1,5 @@
 .square {
+  position: relative;
   width: 100%;
   height: 100%;
   aspect-ratio: 1 / 1;
@@ -12,12 +13,21 @@
 }
 
 .piece {
+  position: relative;
+  z-index: 2;
   font-size: clamp(2rem, 8vw, 5rem);
-  cursor: pointer;
   user-select: none;
   display: inline-block;
-  transition: transform 0.2s cubic-bezier(0.3, 1.6, 0.5, 1);
+  transition: transform 0.2s cubic-bezier(0.3, 1.6, 0.5, 1), filter 0.2s ease;
   line-height: 1;
+}
+
+.draggable {
+  cursor: grab;
+}
+
+.draggable:active {
+  cursor: grabbing;
 }
 
 .whitePiece {
@@ -32,12 +42,14 @@
   text-shadow: 0 0.04em 0 rgba(255, 255, 255, 0.35);
 }
 
-.square:hover .piece {
-  transform: translateY(-3px);
+.square:hover .draggable {
+  transform: translateY(-4px) scale(1.06);
+  filter: drop-shadow(0 6px 3px rgba(23, 20, 15, 0.35));
 }
 
 .active {
-  transform: scale(1.25) translateY(-3px) !important;
+  transform: scale(1.22) translateY(-4px) !important;
+  filter: drop-shadow(0 8px 4px rgba(23, 20, 15, 0.4));
 }
 
 .checkmate {
@@ -45,9 +57,123 @@
   filter: grayscale(0.4);
 }
 
+.justMoved {
+  animation: land 0.35s cubic-bezier(0.3, 1.7, 0.5, 1);
+}
+
+/* Selected piece */
+.selected::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(246, 184, 0, 0.55);
+  box-shadow: inset 0 0 0 3px var(--ink);
+  z-index: 1;
+}
+
+/* Legal move: small dot on an empty square */
+.target::after {
+  content: "";
+  position: absolute;
+  width: 26%;
+  height: 26%;
+  border-radius: 50%;
+  background: rgba(23, 20, 15, 0.38);
+  z-index: 3;
+  pointer-events: none;
+  transition: transform 0.15s ease, background 0.15s ease;
+  animation: dot 0.25s ease-out;
+}
+
+/* Legal capture: ring around the enemy piece */
+.capture::after {
+  content: "";
+  position: absolute;
+  inset: 5%;
+  border-radius: 50%;
+  border: 5px solid rgba(214, 48, 20, 0.85);
+  z-index: 3;
+  pointer-events: none;
+  animation: dot 0.25s ease-out;
+}
+
+/* Hovering a legal square lights it up */
+.target:hover::before,
+.capture:hover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(246, 184, 0, 0.5);
+  z-index: 1;
+}
+
+.target:hover::after {
+  transform: scale(1.7);
+  background: rgba(23, 20, 15, 0.55);
+}
+
+/* King in check */
+.checkKing {
+  background-image: radial-gradient(
+    circle at center,
+    rgba(214, 30, 20, 0.95) 0%,
+    rgba(214, 30, 20, 0.6) 40%,
+    rgba(214, 30, 20, 0) 72%
+  );
+}
+
+.rank,
+.file {
+  position: absolute;
+  z-index: 1;
+  font: 700 clamp(0.55rem, 1.3vw, 0.8rem) / 1 var(--font-code);
+  pointer-events: none;
+}
+
+.rank {
+  top: 4px;
+  left: 5px;
+}
+
+.file {
+  bottom: 4px;
+  right: 5px;
+}
+
+.light .rank,
+.light .file {
+  color: #b86a2c;
+}
+
+.dark .rank,
+.dark .file {
+  color: #f3e5c4;
+}
+
+@keyframes land {
+  0% {
+    transform: scale(0.6) translateY(-14px);
+    opacity: 0.4;
+  }
+  100% {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes dot {
+  from {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
 @media (max-width: 768px) {
   .piece {
     font-size: clamp(1.5rem, 6vw, 3rem);
+  }
+  .capture::after {
+    border-width: 3px;
   }
 }
 
@@ -59,5 +185,10 @@
   .square {
     min-height: 30px;
     min-width: 30px;
+  }
+
+  .rank,
+  .file {
+    display: none;
   }
 }

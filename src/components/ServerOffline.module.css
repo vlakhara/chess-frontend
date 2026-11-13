@@ -154,3 +154,30 @@
     transform: translateY(6px);
   }
 }
+
+.statusOk {
+  background: #fff1b8;
+}
+
+.retry {
+  margin-top: 12px;
+  padding: 9px 20px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--orange);
+  color: var(--ink);
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 3px 0 var(--ink);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.retry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 0 var(--ink);
+}
+
+.retry:active {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--ink);
+}
