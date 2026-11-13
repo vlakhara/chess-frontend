@@ -156,6 +156,30 @@ const PuzzleEditor = ({ initial }: Props) => {
       ? `${window.location.origin}/puzzle?${encodePuzzle(created)}`
       : "";
 
+  const toolLabel =
+    tool === "erase"
+      ? "Eraser. Tap a piece to remove it."
+      : tool
+      ? `Placing a ${tool.color} ${tool.type.toLowerCase()}. Tap a square.`
+      : "Pick a piece, then tap a square.";
+
+  const swatches = (color: "white" | "black") =>
+    PALETTE.filter((p) => p.color === color).map((p) => {
+      const on = tool && tool !== "erase" && tool.type === p.type && tool.color === p.color;
+      return (
+        <button
+          key={`${p.color}-${p.type}`}
+          type="button"
+          className={`${styles.swatch} ${on ? styles.swatchOn : ""}`}
+          aria-label={`${p.color} ${p.type.toLowerCase()}`}
+          aria-pressed={Boolean(on)}
+          onClick={() => setTool(p)}
+        >
+          <svg viewBox="0 0 100 100" dangerouslySetInnerHTML={{ __html: pieceMarkup(p.type, p.color) }} />
+        </button>
+      );
+    });
+
   return (
     <main className={styles.page}>
       <header className={styles.top}>
@@ -179,134 +203,159 @@ const PuzzleEditor = ({ initial }: Props) => {
         </div>
 
         <aside className={styles.panel}>
-          <div className={styles.tabs} role="tablist">
+          <div className={styles.steps} role="tablist">
             <button
               type="button"
               role="tab"
               aria-selected={mode === "setup"}
-              className={`${styles.tab} ${mode === "setup" ? styles.tabOn : ""}`}
+              className={`${styles.step} ${mode === "setup" ? styles.stepOn : ""}`}
               onClick={() => setMode("setup")}
             >
-              1. Set up
+              <i>1</i> Set up
             </button>
             <button
               type="button"
               role="tab"
               aria-selected={mode === "solution"}
-              className={`${styles.tab} ${mode === "solution" ? styles.tabOn : ""}`}
+              className={`${styles.step} ${mode === "solution" ? styles.stepOn : ""}`}
               onClick={goSolution}
             >
-              2. Solution
+              <i>2</i> Solution
             </button>
           </div>
 
           {mode === "setup" ? (
             <>
-              <p className={styles.note}>
-                Pick a piece, then tap squares to place it. Tap again to remove.
-              </p>
-              <div className={styles.palette} role="toolbar" aria-label="Pieces">
-                {PALETTE.map((p) => {
-                  const on = tool && tool !== "erase" && tool.type === p.type && tool.color === p.color;
-                  return (
-                    <button
-                      key={`${p.color}-${p.type}`}
-                      type="button"
-                      className={`${styles.swatch} ${on ? styles.swatchOn : ""}`}
-                      aria-label={`${p.color} ${p.type.toLowerCase()}`}
-                      aria-pressed={Boolean(on)}
-                      onClick={() => setTool(p)}
-                    >
-                      <svg
-                        viewBox="0 0 100 100"
-                        dangerouslySetInnerHTML={{ __html: pieceMarkup(p.type, p.color) }}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-              <div className={styles.shareRow}>
+              <section className={styles.section}>
+                <h2 className={styles.sectionTitle}>Pieces</h2>
+                <p className={styles.placing}>{toolLabel}</p>
+                <div className={styles.paletteRow}>
+                  <span className={styles.rowLabel}>White</span>
+                  <div className={styles.palette} role="toolbar" aria-label="White pieces">
+                    {swatches("white")}
+                  </div>
+                </div>
+                <div className={styles.paletteRow}>
+                  <span className={styles.rowLabel}>Black</span>
+                  <div className={styles.palette} role="toolbar" aria-label="Black pieces">
+                    {swatches("black")}
+                  </div>
+                </div>
                 <button
                   type="button"
-                  className={`${styles.btn} ${tool === "erase" ? styles.btnActive : ""}`}
+                  className={`${styles.btn} ${styles.btnSm} ${tool === "erase" ? styles.btnActive : ""}`}
                   onClick={() => setTool("erase")}
                 >
                   Eraser
                 </button>
-                <button type="button" className={styles.btn} onClick={() => edit(() => setBoard(emptyBoard()))}>
-                  Clear
-                </button>
-                <button
-                  type="button"
-                  className={styles.btn}
-                  onClick={() => edit(() => setBoard(fenToBoard(START_FEN)!.board))}
-                >
-                  Start position
-                </button>
-              </div>
-              <div className={styles.shareRow}>
-                <button
-                  type="button"
-                  className={`${styles.btn} ${turn === "white" ? styles.btnActive : ""}`}
-                  onClick={() => edit(() => { setTurn("white"); setFlipped(false); })}
-                >
-                  White to move
-                </button>
-                <button
-                  type="button"
-                  className={`${styles.btn} ${turn === "black" ? styles.btnActive : ""}`}
-                  onClick={() => edit(() => { setTurn("black"); setFlipped(true); })}
-                >
-                  Black to move
-                </button>
-              </div>
-              <p className={styles.note}>Castling counts as available if the king and rook are on their home squares.</p>
-              <div className={styles.shareRow}>
-                <button type="button" className={`${styles.btn} ${styles.btnInk}`} onClick={goSolution}>
-                  Next: the solution →
-                </button>
-              </div>
+              </section>
+
+              <section className={styles.section}>
+                <h2 className={styles.sectionTitle}>Who moves first</h2>
+                <div className={styles.seg} role="group" aria-label="Side to move">
+                  <button
+                    type="button"
+                    className={`${styles.segBtn} ${turn === "white" ? styles.segOn : ""}`}
+                    onClick={() => edit(() => { setTurn("white"); setFlipped(false); })}
+                  >
+                    <i className={styles.dotWhite} /> White
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.segBtn} ${turn === "black" ? styles.segOn : ""}`}
+                    onClick={() => edit(() => { setTurn("black"); setFlipped(true); })}
+                  >
+                    <i className={styles.dotBlack} /> Black
+                  </button>
+                </div>
+              </section>
+
+              <section className={styles.section}>
+                <h2 className={styles.sectionTitle}>Board</h2>
+                <div className={styles.row3}>
+                  <button type="button" className={`${styles.btn} ${styles.btnSm}`} onClick={() => edit(() => setBoard(emptyBoard()))}>
+                    Clear
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.btn} ${styles.btnSm}`}
+                    onClick={() => edit(() => setBoard(fenToBoard(START_FEN)!.board))}
+                  >
+                    Start position
+                  </button>
+                  <button type="button" className={`${styles.btn} ${styles.btnSm}`} onClick={() => setFlipped((f) => !f)}>
+                    Flip
+                  </button>
+                </div>
+                <p className={styles.note}>
+                  Castling counts as available when the king and rook are on their home squares.
+                </p>
+              </section>
+
+              <button type="button" className={`${styles.btn} ${styles.btnInk} ${styles.btnFull}`} onClick={goSolution}>
+                Next: record the solution →
+              </button>
             </>
           ) : (
             <>
-              <p className={styles.note}>
-                Play the winning line on the board: your move, then the reply, and so on. End on
-                your own move.
-              </p>
-              <p className={styles.moves} aria-live="polite">
-                {solution.length ? solution.join("  ") : "No moves yet."}
-              </p>
-              <div className={styles.shareRow}>
-                <button
-                  type="button"
-                  className={styles.btn}
-                  disabled={!solution.length}
-                  onClick={() => {
-                    setSolution(solution.slice(0, -1));
-                    setSelected(null);
-                    setTargets([]);
-                    setCreated(null);
-                  }}
-                >
-                  Undo
-                </button>
-                <button
-                  type="button"
-                  className={styles.btn}
-                  disabled={!solution.length}
-                  onClick={() => {
-                    setSolution([]);
-                    setSelected(null);
-                    setTargets([]);
-                    setCreated(null);
-                  }}
-                >
-                  Reset
-                </button>
-              </div>
-              <label className={styles.field}>
-                <span className={styles.fieldLabel}>Title (optional)</span>
+              <section className={styles.section}>
+                <h2 className={styles.sectionTitle}>Play the solution</h2>
+                <p className={styles.note}>
+                  <b>{mover === "white" ? "White" : "Black"} to play.</b> Make the winning move, then
+                  the reply, and so on. Finish on the solver&apos;s move.
+                </p>
+                <div className={styles.moveList} aria-live="polite">
+                  {solution.length === 0 && <span className={styles.noMoves}>No moves yet. Tap a piece on the board.</span>}
+                  {solution.map((m, i) => (
+                    <span key={`${i}-${m}`} className={`${styles.pill} ${i % 2 === 0 ? styles.pillSolver : styles.pillReply}`}>
+                      <small>{i % 2 === 0 ? `${i / 2 + 1}.` : "↩"}</small> {m}
+                    </span>
+                  ))}
+                </div>
+                {solution.length > 0 && (
+                  <p className={styles.legend}>
+                    <i className={styles.pillSolver} /> solver <i className={styles.pillReply} /> reply
+                  </p>
+                )}
+                <div className={styles.row3}>
+                  <button
+                    type="button"
+                    className={`${styles.btn} ${styles.btnSm}`}
+                    disabled={!solution.length}
+                    onClick={() => {
+                      setSolution(solution.slice(0, -1));
+                      setSelected(null);
+                      setTargets([]);
+                      setCreated(null);
+                    }}
+                  >
+                    Undo
+                  </button>
+                  <button
+                    type="button"
+                    className={`${styles.btn} ${styles.btnSm}`}
+                    disabled={!solution.length}
+                    onClick={() => {
+                      setSolution([]);
+                      setSelected(null);
+                      setTargets([]);
+                      setCreated(null);
+                    }}
+                  >
+                    Reset
+                  </button>
+                  <button type="button" className={`${styles.btn} ${styles.btnSm}`} onClick={() => setFlipped((f) => !f)}>
+                    Flip
+                  </button>
+                </div>
+              </section>
+
+              <section className={styles.section}>
+                <label className={styles.fieldLabel} htmlFor="puzzle-title">
+                  Title <span className={styles.optional}>optional</span>
+                </label>
                 <input
+                  id="puzzle-title"
                   className={styles.input}
                   value={title}
                   maxLength={60}
@@ -316,20 +365,13 @@ const PuzzleEditor = ({ initial }: Props) => {
                     setCreated(null);
                   }}
                 />
-              </label>
-              <div className={styles.shareRow}>
-                <button type="button" className={`${styles.btn} ${styles.btnInk}`} onClick={create}>
-                  Create puzzle
-                </button>
-              </div>
+              </section>
+
+              <button type="button" className={`${styles.btn} ${styles.btnInk} ${styles.btnFull}`} onClick={create}>
+                Create puzzle
+              </button>
             </>
           )}
-
-          <div className={styles.shareRow}>
-            <button type="button" className={styles.btn} onClick={() => setFlipped((f) => !f)}>
-              Flip board
-            </button>
-          </div>
 
           {error && (
             <p className={styles.error} role="alert">
@@ -338,8 +380,9 @@ const PuzzleEditor = ({ initial }: Props) => {
           )}
 
           {created && info && (
-            <div data-testid="created">
-              <h2 className={styles.h2}>Your puzzle · {goalText(info)}</h2>
+            <section className={`${styles.section} ${styles.created}`} data-testid="created">
+              <h2 className={styles.sectionTitle}>Your puzzle is ready</h2>
+              <p className={styles.createdGoal}>{goalText(info)}</p>
               <input className={styles.linkBox} readOnly value={link} onFocus={(e) => e.currentTarget.select()} />
               {previewOk && (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -351,12 +394,10 @@ const PuzzleEditor = ({ initial }: Props) => {
                 />
               )}
               <ShareTools puzzle={created} info={info} />
-              <div className={styles.shareRow}>
-                <Link className={styles.btn} href={`/puzzle?${encodePuzzle(created)}`}>
-                  Try it yourself
-                </Link>
-              </div>
-            </div>
+              <Link className={`${styles.btn} ${styles.btnFull}`} href={`/puzzle?${encodePuzzle(created)}`}>
+                Try it yourself
+              </Link>
+            </section>
           )}
         </aside>
       </div>

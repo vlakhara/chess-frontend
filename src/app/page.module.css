@@ -129,3 +129,11 @@
   font-size: 0.85rem;
   text-align: center;
 }
+
+@media (max-width: 768px) {
+  .credit {
+    position: static;
+    width: max-content;
+    margin: 4px auto 18px;
+  }
+}

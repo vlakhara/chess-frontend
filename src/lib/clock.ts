@@ -15,7 +15,7 @@ export interface ClockState {
 }
 
 export const TIME_CONTROLS: { label: string; hint: string; value: TimeControl }[] = [
-  { label: "Untimed", hint: "Take your time", value: { base: 0, inc: 0 } },
+  { label: "Untimed", hint: "Casual", value: { base: 0, inc: 0 } },
   { label: "3 | 2", hint: "Blitz", value: { base: 180, inc: 2 } },
   { label: "5 | 0", hint: "Blitz", value: { base: 300, inc: 0 } },
   { label: "10 | 0", hint: "Rapid", value: { base: 600, inc: 0 } },

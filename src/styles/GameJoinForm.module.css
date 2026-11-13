@@ -1,13 +1,12 @@
 .container {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
   padding: 20px;
   overflow-y: auto;
 }
 
 .formCard {
+  margin: auto; /* centres when there is room, scrolls from the top when there is not */
   width: 100%;
   max-width: 440px;
   padding: clamp(24px, 5vw, 36px);
@@ -236,20 +235,36 @@
 }
 
 .chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 8px;
 }
 
 .chip {
-  padding: 7px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 9px 2px 8px;
   border: 2px solid var(--ink);
-  border-radius: 999px;
+  border-radius: 14px;
   background: var(--paper);
   color: var(--ink);
-  font: 700 0.84rem var(--font-code);
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.chip b {
+  font: 800 0.95rem var(--font-code);
+  white-space: nowrap;
+}
+
+.chip small {
+  font: 600 0.56rem var(--font-code);
+  letter-spacing: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink-soft);
 }
 
 .chip:hover {
@@ -260,8 +275,18 @@
 .chipActive,
 .chipActive:hover {
   background: var(--mustard);
-  box-shadow: 2px 2px 0 var(--ink);
+  box-shadow: 3px 3px 0 var(--ink);
   transform: none;
+}
+
+.chipActive small {
+  color: var(--ink);
+}
+
+@media (max-width: 380px) {
+  .chip b {
+    font-size: 0.8rem;
+  }
 }
 
 .notice {
@@ -306,4 +331,28 @@
   display: block;
   color: var(--ink-soft);
   font-size: 0.8rem;
+}
+
+@media (max-height: 820px) {
+  .container {
+    padding: 14px;
+  }
+  .formCard {
+    padding: 22px 28px 24px;
+  }
+  .pieces {
+    font-size: 2.4rem;
+  }
+  .title {
+    font-size: 2.8rem;
+  }
+  .subtitle {
+    margin-bottom: 14px;
+  }
+  .tabs {
+    margin-bottom: 14px;
+  }
+  .formGroup {
+    margin-bottom: 12px;
+  }
 }

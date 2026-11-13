@@ -55,7 +55,7 @@ const ShareTools = ({ puzzle, info, gif = true }: ShareToolsProps) => {
 
   return (
     <div className={styles.share}>
-      <div className={styles.shareRow}>
+      <div className={styles.shareGrid}>
         <button type="button" className={styles.btn} onClick={copy}>
           {copied ? "Link copied!" : "Copy link"}
         </button>
@@ -71,8 +71,6 @@ const ShareTools = ({ puzzle, info, gif = true }: ShareToolsProps) => {
         >
           Post to X
         </a>
-      </div>
-      <div className={styles.shareRow}>
         <button type="button" className={styles.btn} onClick={() => run("png")} disabled={busy !== null}>
           {busy === "png" ? "Making image…" : "Download image"}
         </button>

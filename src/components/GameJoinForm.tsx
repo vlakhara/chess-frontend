@@ -244,7 +244,8 @@ const GameJoinForm = ({ notice = "" }: GameJoinFormProps) => {
                   className={`${styles.chip} ${timeIndex === i ? styles.chipActive : ""}`}
                   onClick={() => setTimeIndex(i)}
                 >
-                  {tc.label}
+                  <b>{tc.value.base === 0 ? "∞" : tc.label}</b>
+                  <small>{tc.hint}</small>
                 </button>
               ))}
             </div>
