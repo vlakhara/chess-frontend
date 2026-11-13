@@ -4,6 +4,14 @@ let reconnectAttempts = 0;
 let messageHandler: ((data: SocketMessage) => void) | null = null;
 let pending: string[] = [];
 let listenersAttached = false;
+let heartbeat: ReturnType<typeof setInterval> | null = null;
+let latency: number | null = null;
+
+// A tiny ping every 20s keeps the connection from being dropped as idle by
+// the hosting proxy, and gives us the round-trip time.
+const HEARTBEAT_MS = 20000;
+
+export const getLatency = (): number | null => latency;
 
 // Retry quickly at first (a sleeping free-tier server usually wakes within a
 // few seconds) and back off to a few seconds, instead of one long wait.
@@ -41,17 +49,28 @@ export const getSocketState = (): string => {
 };
 
 const dispatchMessage = (event: MessageEvent) => {
-  if (!messageHandler) return;
+  let data: SocketMessage;
   try {
-    messageHandler(JSON.parse(event.data));
+    data = JSON.parse(event.data);
   } catch {
     // The server sends some errors (e.g. "Game is already full") as plain
     // text. Surface them as an ERROR message instead of throwing.
-    messageHandler({
+    const text = String(event.data);
+    // An older server doesn't know the heartbeat; ignore its complaint.
+    if (/PING/.test(text)) return;
+    messageHandler?.({
       type: "ERROR",
-      payload: { message: String(event.data).replace(/^\W+/, "") },
+      payload: { message: text.replace(/^\W+/, "") },
     });
+    return;
   }
+
+  if (data?.type === "PONG") {
+    const sent = Number(data.payload?.t);
+    if (sent) latency = Math.max(0, Date.now() - sent);
+    return;
+  }
+  messageHandler?.(data);
 };
 
 const attachListeners = () => {
@@ -80,8 +99,17 @@ export const initializeSocket = (): WebSocket | null => {
       const ws = new WebSocket(socketUrl);
       socket = ws;
 
+      const ping = () => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ type: "PING", payload: { t: Date.now() } }));
+        }
+      };
+
       ws.onopen = () => {
         reconnectAttempts = 0;
+        if (heartbeat) clearInterval(heartbeat);
+        heartbeat = setInterval(ping, HEARTBEAT_MS);
+        ping();
         if (reconnectTimer) {
           clearTimeout(reconnectTimer);
           reconnectTimer = null;
@@ -97,6 +125,11 @@ export const initializeSocket = (): WebSocket | null => {
 
       ws.onclose = () => {
         if (socket !== ws) return;
+        if (heartbeat) {
+          clearInterval(heartbeat);
+          heartbeat = null;
+        }
+        latency = null;
         if (reconnectAttempts < MAX_RECONNECT_ATTEMPTS) {
           scheduleReconnect();
         }

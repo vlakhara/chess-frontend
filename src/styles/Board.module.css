@@ -81,3 +81,33 @@
     border-radius: 10px;
   }
 }
+
+.latency {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 30;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: var(--paper);
+  font: 700 0.72rem var(--font-code);
+}
+
+.latency i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.fair i {
+  background: var(--mustard);
+}
+
+.poor i {
+  background: #d63014;
+}

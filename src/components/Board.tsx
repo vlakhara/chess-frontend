@@ -20,11 +20,11 @@ import {
   Position,
 } from "@/brain/types";
 import confetti from "canvas-confetti";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import History from "./History";
 import { usePromotionDialog } from "./usePromotionDialog";
 import WinnerDialog from "./WinnerDialog";
-import { onMessage, sendMessage, SocketMessage } from "@/lib/socket";
+import { getLatency, onMessage, sendMessage, SocketMessage } from "@/lib/socket";
 import BoardLabel from "./BoardLabel";
 import BoardSquare from "./BoardSquare";
 import styles from "@/styles/Board.module.css";
@@ -58,6 +58,15 @@ const Board = ({
   const [showWinnerDialog, setShowWinnerDialog] = useState(false);
   const [isStalemate, setIsStalemate] = useState(false);
   const { askPromotion, dialog: promotionDialog } = usePromotionDialog();
+  const [latency, setLatency] = useState<number | null>(null);
+
+  // Show the live round-trip time so a slow connection is visible.
+  useEffect(() => {
+    const read = () => setLatency(getLatency());
+    read();
+    const id = setInterval(read, 2000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (game.board) {
@@ -199,8 +208,20 @@ const Board = ({
       };
 
       setGame(_game);
+      // Send just the move (a few hundred bytes) instead of the whole game.
+      // The opponent replays it with the same rules code.
       sendMessage("MOVE", {
-        game: _game,
+        gameId: game.gameId,
+        move: {
+          from: selectedPosition,
+          to: position,
+          promotedTo: choice ?? undefined,
+          isCastle: Boolean(_history.isCastle),
+        },
+        check: isCheck,
+        checkmate: isCheckMate,
+        stalemate: isStalemate,
+        winner,
       });
       resetStates();
     } else if (piece && piece.color === turn) {
@@ -304,6 +325,10 @@ const Board = ({
     frame();
   };
 
+  // Latest props for the socket handler below, which is registered only once.
+  const latest = useRef({ game, player, opponent });
+  latest.current = { game, player, opponent };
+
   useEffect(() => {
     const handleMessage = (data: SocketMessage) => {
       const { payload } = data;
@@ -316,6 +341,68 @@ const Board = ({
       if (data.type === "OPPONENT_JOINED" && payload) {
         const { game } = payload as { game: GameState };
         setGame(game);
+      }
+
+      // The opponent's move, sent as just the move. Replay it on our board.
+      if (data.type === "OPPONENT_MOVE" && payload) {
+        const { game: current, player: me, opponent: them } = latest.current;
+        const m = payload as unknown as {
+          move: {
+            from: Position;
+            to: Position;
+            promotedTo?: PieceType;
+            isCastle?: boolean;
+          };
+          check: boolean;
+          checkmate: boolean;
+          stalemate: boolean;
+          winner: "white" | "black" | null;
+        };
+        const before = current.board.pieces;
+        const piece = before[m.move.from.x][m.move.from.y];
+        if (!piece) return;
+
+        let after = movePiece(before, m.move.from, m.move.to);
+        if (m.move.promotedTo) {
+          after = promote(after, m.move.promotedTo, m.move.to, piece.color);
+        }
+        const played: Move = {
+          from: m.move.from,
+          to: m.move.to,
+          piece,
+          capturedPiece: before[m.move.to.x][m.move.to.y],
+        };
+        if (m.move.promotedTo) {
+          played.isPromoted = true;
+          played.promotedTo = m.move.promotedTo;
+        }
+        if (m.move.isCastle) played.isCastle = true;
+
+        setGame({
+          ...current,
+          history: {
+            moves: [...current.history.moves, played],
+            lastMove: played,
+          },
+          board: { pieces: after },
+          currentTurn: me,
+          winner: m.winner ? them : null,
+          status: m.checkmate
+            ? GameStatus.CHECKMATE
+            : m.stalemate
+            ? GameStatus.STALEMATE
+            : current.status,
+          check: m.check,
+          checkmate: m.checkmate,
+          stalemate: m.stalemate,
+        });
+      }
+
+      // The opponent disconnected: the win is ours, and our board is correct.
+      if (data.type === "OPPONENT_LEFT") {
+        const { game: current, player: me } = latest.current;
+        if (current.winner || current.stalemate) return;
+        setGame({ ...current, status: GameStatus.RESIGNED, winner: me });
       }
     };
 
@@ -425,6 +512,16 @@ const Board = ({
           )}
         </div>
       </div>
+      {latency !== null && (
+        <div
+          className={`${styles.latency} ${
+            latency < 150 ? styles.good : latency < 400 ? styles.fair : styles.poor
+          }`}
+          title="Round-trip time to the game server"
+        >
+          <i /> {latency} ms
+        </div>
+      )}
       <History history={history} />
       <WinnerDialog
         winner={winner}
