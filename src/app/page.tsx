@@ -3,13 +3,12 @@
 import { GameState, GameStatus, Player } from "@/brain/types";
 import Board from "@/components/Board";
 import GameJoinForm from "@/components/GameJoinForm";
-import ServerOffline from "@/components/ServerOffline";
+import ConnectionPill from "@/components/ConnectionPill";
 import WaitingRoom from "@/components/WaitingRoom";
 import { useEffect, useState } from "react";
 import styles from "./page.module.css";
 import {
   initializeSocket,
-  getReconnectAttempts,
   getSocketState,
   sendMessage,
 } from "@/lib/socket";
@@ -19,7 +18,6 @@ export default function Home() {
   const [opponent, setOpponent] = useState<Player | null>(null);
   const [game, setGame] = useState<GameState | null>(null);
   const [isSocketConnected, setIsSocketConnected] = useState<boolean>(false);
-  const [reconnectAttempts, setReconnectAttempts] = useState<number>(0);
   // Seconds since we last had a working connection (0 while connected).
   const [downFor, setDownFor] = useState<number>(0);
 
@@ -31,7 +29,6 @@ export default function Home() {
     const sync = () => {
       const connected = getSocketState() === "OPEN";
       setIsSocketConnected(connected);
-      setReconnectAttempts(getReconnectAttempts());
       setDownFor((prev) => (connected ? 0 : prev));
     };
     sync();
@@ -56,16 +53,12 @@ export default function Home() {
     }
   }, [game, player]);
 
-  if (!isSocketConnected) {
-    // Don't flash "offline" while the first connection is still being made or a
-    // sleeping server is waking up.
-    const phase = downFor < 6 ? "connecting" : downFor < 45 ? "waking" : "offline";
-    return <ServerOffline reconnectAttempts={reconnectAttempts} phase={phase} />;
-  }
+  const pill = <ConnectionPill connected={isSocketConnected} downFor={downFor} />;
 
   if (!game || !player) {
     return (
       <>
+        {pill}
         <GameJoinForm setPlayer={setPlayer} setGame={setGame} />
 
         <a
@@ -83,6 +76,7 @@ export default function Home() {
 
   return (
     <div className={styles.container}>
+      {pill}
       {game.status === GameStatus.WAITING_FOR_PLAYER && (
         <WaitingRoom
           gameId={game.gameId}
