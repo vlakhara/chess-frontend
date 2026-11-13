@@ -252,7 +252,7 @@ const GameJoinForm = ({ notice = "" }: GameJoinFormProps) => {
             <p className={styles.help}>
               {TIME_CONTROLS[timeIndex].value.base === 0
                 ? "No clock. Think as long as you like."
-                : "Minutes | seconds added per move. Clocks start after both sides have moved."}
+                : "Minutes | seconds added per move. The clock starts after White's first move."}
             </p>
           </div>
         )}
