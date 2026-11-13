@@ -19,7 +19,7 @@ import {
   Player,
   Position,
 } from "@/brain/types";
-import confetti from "canvas-confetti";
+import Celebration from "./Celebration";
 import { useEffect, useRef, useState } from "react";
 import History from "./History";
 import { usePromotionDialog } from "./usePromotionDialog";
@@ -61,6 +61,8 @@ const Board = ({
   const [isStalemate, setIsStalemate] = useState(false);
   const { askPromotion, dialog: promotionDialog } = usePromotionDialog();
   const [latency, setLatency] = useState<number | null>(null);
+  const [celebrating, setCelebrating] = useState(false);
+  const celebratingRef = useRef(false);
   const [drawState, setDrawState] = useState<"idle" | "offered">("idle");
   const [incomingDraw, setIncomingDraw] = useState(false);
   const [confirm, setConfirm] = useState<"resign" | "exit" | null>(null);
@@ -347,37 +349,17 @@ const Board = ({
   const lastMove = history[history.length - 1];
   const canMove = isGameReady && player.color === turn;
 
+  // The winner's celebration (see Celebration.tsx). Triggered from a couple of
+  // places; ignore repeats while one is already playing.
   const handleClick = () => {
-    const end = Date.now() + 3 * 1000;
-    const colors = ["#a786ff", "#fd8bbc", "#eca184", "#f8deb1"];
+    if (celebratingRef.current) return;
+    celebratingRef.current = true;
+    setCelebrating(true);
+  };
 
-    const frame = () => {
-      if (Date.now() > end) return;
-
-      confetti({
-        particleCount: 2,
-        angle: 60,
-        spread: 55,
-        startVelocity: 60,
-        origin: { x: 0, y: 0.5 },
-        colors: colors,
-        zIndex: 9999, // Ensure confetti appears above dialog
-      });
-
-      confetti({
-        particleCount: 2,
-        angle: 120,
-        spread: 55,
-        startVelocity: 60,
-        origin: { x: 1, y: 0.5 },
-        colors: colors,
-        zIndex: 9999, // Ensure confetti appears above dialog
-      });
-
-      requestAnimationFrame(frame);
-    };
-
-    frame();
+  const endCelebration = () => {
+    celebratingRef.current = false;
+    setCelebrating(false);
   };
 
   // Latest props for the socket handler below, which is registered only once.
@@ -647,6 +629,7 @@ const Board = ({
           onCancel={() => answerDraw(false)}
         />
       )}
+      {celebrating && <Celebration onDone={endCelebration} />}
       {notice && (
         <div className={styles.toast} role="status">
           {notice}

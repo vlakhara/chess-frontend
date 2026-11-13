@@ -1,0 +1,91 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Chips burst up from the bottom centre, then drop. */
+.chip {
+  position: absolute;
+  left: 50%;
+  bottom: -20px;
+  border: 2px solid var(--ink);
+  opacity: 0;
+  animation: burst 2.6s cubic-bezier(0.2, 0.7, 0.3, 1) both;
+}
+
+/* Chess pieces drift down from the top. */
+.piece {
+  position: absolute;
+  top: -80px;
+  line-height: 1;
+  opacity: 0;
+  animation-name: fall;
+  animation-timing-function: cubic-bezier(0.35, 0.1, 0.55, 1);
+  animation-fill-mode: both;
+}
+
+.white {
+  color: #fffdf6;
+  -webkit-text-stroke: 0.045em var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 0.06em 0 var(--ink);
+}
+
+.ink {
+  color: var(--ink);
+}
+
+.orange {
+  color: var(--orange);
+  -webkit-text-stroke: 0.045em var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 0.06em 0 var(--ink);
+}
+
+.mustard {
+  color: var(--mustard);
+  -webkit-text-stroke: 0.045em var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 0 0.06em 0 var(--ink);
+}
+
+@keyframes burst {
+  0% {
+    opacity: 1;
+    transform: translate(0, 0) rotate(0deg) scale(0.6);
+  }
+  45% {
+    opacity: 1;
+    transform: translate(var(--dx), var(--dy)) rotate(calc(var(--spin) * 0.5)) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(calc(var(--dx) * 1.2), 8vh) rotate(var(--spin)) scale(1);
+  }
+}
+
+@keyframes fall {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  8% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--sway), 118vh, 0) rotate(var(--spin));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .layer {
+    display: none;
+  }
+}
